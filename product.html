@@ -39,8 +39,13 @@
       
       <!-- Left: Product Image Layout -->
       <div class="lg:col-span-7">
-        <div class="aspect-[3/4] overflow-hidden bg-neutral-100">
-          <img id="product-image" src="" class="w-full h-full object-cover object-center" alt="Product Image Preview">
+        <div class="relative w-full overflow-hidden bg-neutral-50 group border border-neutral-200/40 aspect-[3/4]">
+          <div id="carousel-track" class="flex w-full h-full transition-transform duration-500 ease-out"></div>
+          
+          <button type="button" onclick="moveCarouselSlide(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-neutral-900 border border-neutral-200 w-8 h-8 flex items-center justify-center text-xs transition-all opacity-0 group-hover:opacity-100 font-light select-none z-10">←</button>
+          <button type="button" onclick="moveCarouselSlide(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-neutral-900 border border-neutral-200 w-8 h-8 flex items-center justify-center text-xs transition-all opacity-0 group-hover:opacity-100 font-light select-none z-10">→</button>
+          
+          <div class="absolute bottom-4 right-4 bg-black/70 backdrop-blur-md px-2.5 py-1 text-[9px] font-mono tracking-widest text-white uppercase z-10" id="carousel-counter">1 / 1</div>
         </div>
       </div>
 
@@ -148,6 +153,75 @@
     window.location.href = 'index.html?openCart=true';
   }
 
+  let currentSlideIndex = 0;
+  let totalMediaSlides = 0;
+
+  function setupUnifiedMediaCarousel(product) {
+    const track = document.getElementById('carousel-track');
+    if (!track) return;
+    track.innerHTML = '';
+    
+    let mediaList = [];
+    
+    // Inject primary cover asset first
+    if (product.primaryimage) mediaList.push(product.primaryimage.trim());
+    
+    // Parse comma-separated gallery column values back into discrete web addresses
+    if (product.galleryimages) {
+      const extraMedia = product.galleryimages.split(',').map(item => item.trim()).filter(item => item.length > 0);
+      mediaList = [...mediaList, ...extraMedia];
+    }
+    
+    totalMediaSlides = mediaList.length;
+    currentSlideIndex = 0;
+    updateCarouselCounter();
+
+    mediaList.forEach(url => {
+      const slide = document.createElement('div');
+      slide.className = 'w-full h-full flex-shrink-0 relative flex items-center justify-center';
+      slide.style.minWidth = '100%';
+      
+      const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+      const isVimeo = url.includes('vimeo.com');
+
+      if (isYouTube) {
+        let videoId = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop();
+        slide.innerHTML = `
+          <iframe class="w-full h-full border-0 pointer-events-none" src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1" allow="autoplay; encrypted-media"></iframe>
+        `;
+      } else if (isVimeo) {
+        let videoId = url.split('/').pop();
+        slide.innerHTML = `
+          <iframe class="w-full h-full border-0 pointer-events-none" src="https://player.vimeo.com/video/${videoId}?autoplay=1&loop=1&autopause=0&muted=1&background=1" allow="autoplay; encrypted-media"></iframe>
+        `;
+      } else {
+        slide.innerHTML = `
+          <img src="${url}" alt="AURA Collection Asset" class="w-full h-full object-cover select-none pointer-events-none">
+        `;
+      }
+      track.appendChild(slide);
+    });
+  }
+
+  function moveCarouselSlide(direction) {
+    if (totalMediaSlides <= 1) return;
+    currentSlideIndex += direction;
+    
+    if (currentSlideIndex >= totalMediaSlides) currentSlideIndex = 0;
+    if (currentSlideIndex < 0) currentSlideIndex = totalMediaSlides - 1;
+    
+    const track = document.getElementById('carousel-track');
+    track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+    updateCarouselCounter();
+  }
+
+  function updateCarouselCounter() {
+    const counter = document.getElementById('carousel-counter');
+    if (counter) {
+      counter.innerText = `${currentSlideIndex + 1} / ${totalMediaSlides || 1}`;
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     // Sync cart count on load
     try {
@@ -166,7 +240,7 @@
         const product = products.find(p => p.id === currentProductId) || products[0];
         if (product) {
           currentProductId = product.id;
-          document.getElementById('product-image').src = product.primaryimage;
+          setupUnifiedMediaCarousel(product);
           document.getElementById('product-name').innerText = product.name;
           const priceVal = parseFloat(product.price) || 0;
           document.getElementById('product-price').innerText = `$${priceVal.toFixed(2)}`;

@@ -105,6 +105,9 @@
             <input type="file" id="prod-media-files" accept="image/*,video/mp4" multiple class="w-full bg-transparent border border-neutral-300 px-4 py-2.5 text-xs focus:outline-none focus:border-black file:mr-4 file:py-1 file:px-3 file:border-0 file:text-xs file:bg-neutral-900 file:text-white cursor-pointer">
           </div>
         </div>
+        <div class="md:col-span-2">
+          <input type="url" id="prod-video-url" placeholder="External Streaming Asset URL (YouTube / Vimeo / Optional)" class="w-full bg-transparent border border-neutral-300 px-4 py-3 text-xs tracking-wider placeholder-neutral-400 focus:outline-none focus:border-black transition-colors">
+        </div>
         <div class="md:col-span-2 text-right mt-2">
           <button type="submit" class="bg-[#1c1b1a] text-white text-xs tracking-widest uppercase px-8 py-4 font-medium transition-all duration-300 hover:bg-neutral-800 active:scale-[0.99]">
             Publish New Item to Collection
@@ -228,6 +231,8 @@
       .catch(err => console.error("Record deletion failed:", err));
     }
 
+    const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwd5Ra_bBvKgIHrCynFIcPyXlZwPuMbhuZYJIEmwFUeZ55XSJKSfctxPqqA6PFpGKywiw/exec";
+
     async function publishNewInventoryItem(e) {
       e.preventDefault();
       const errorEl = document.getElementById('product-form-error');
@@ -239,7 +244,8 @@
       const tag = document.getElementById('prod-tag').value.trim();
       
       const coverFile = document.getElementById('prod-cover-file').files[0];
-      const mediaFiles = document.getElementById('prod-media-files').files;
+      const mediaFiles = document.getElementById('prod-media-files').files; // Multiple media input element
+      const externalVideoUrl = document.getElementById('prod-video-url')?.value.trim(); // Optional text input for external video link
       
       if (!name || !category || isNaN(price) || !coverFile) {
         errorEl.innerText = "Please complete core specifications and provide a primary display asset.";
@@ -248,54 +254,53 @@
       }
 
       const submitBtn = e.target.querySelector('button[type="submit"]');
-      submitBtn.innerText = "OPTIMIZING & COMPRESSING ASSETS...";
+      submitBtn.innerText = "UPLOADING ASSETS TO GOOGLE DRIVE...";
       submitBtn.disabled = true;
 
-      // Smart resolution compression utility to keep payloads well under SheetDB's 8MB limits
-      const compressImageToDataUri = (file) => new Promise((resolve) => {
-        if (file.type.includes('video')) {
-          // Pass video structures cleanly if small
-          const reader = new FileReader();
-          reader.onload = (ev) => resolve(ev.target.result);
-          reader.readAsDataURL(file);
-          return;
-        }
-        
+      // Converts a local binary file to Base64 and transmits it securely to the Google Apps Script Web App
+      const uploadToGoogleDrive = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (event) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            // Bound image scale constraints to luxury web preview dimensions
-            const MAX_WIDTH = 1000;
-            const MAX_HEIGHT = 1333;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height) {
-              if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-            } else {
-              if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
+        reader.onload = async (event) => {
+          const base64String = event.target.result.split(',')[1];
+          
+          try {
+            const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+              method: 'POST',
+              body: JSON.stringify({
+                filename: `aura-${Date.now()}-${file.name}`,
+                type: file.type,
+                base64: base64String
+              })
+            });
             
-            // Export highly compressed, web-ready asset string
-            resolve(canvas.toDataURL('image/jpeg', 0.7));
-          };
-          img.src = event.target.result;
+            const result = await response.json();
+            if (result.status === 'success') {
+              resolve(result.url);
+            } else {
+              reject(new Error(result.message || "Failed uploading asset to Google Drive."));
+            }
+          } catch (err) {
+            reject(err);
+          }
         };
+        reader.onerror = (error) => reject(error);
         reader.readAsDataURL(file);
       });
 
       try {
-        const primaryImageUri = await compressImageToDataUri(coverFile);
-        const mediaUriPromises = Array.from(mediaFiles).map(file => compressImageToDataUri(file));
-        const mediaUriList = await Promise.all(mediaUriPromises);
+        // 1. Upload primary cover photo
+        const primaryImageUri = await uploadToGoogleDrive(coverFile);
+        
+        // 2. Upload multiple lookbook gallery files simultaneously
+        const mediaUploadPromises = Array.from(mediaFiles).map(file => uploadToGoogleDrive(file));
+        const resolvedMediaUrls = await Promise.all(mediaUploadPromises);
+        
+        // 3. Append external streaming video link (YouTube/Vimeo) if it exists
+        if (externalVideoUrl) {
+          resolvedMediaUrls.push(externalVideoUrl);
+        }
 
+        // 4. Compile payload with lightweight URLs to keep request under 8MB
         const payload = {
           data: [{
             id: "aura-" + Math.floor(100 + Math.random() * 900),
@@ -304,7 +309,7 @@
             price: price,
             tag: tag,
             primaryimage: primaryImageUri,
-            galleryimages: mediaUriList.join(',') // Strictly explicitly aligned to your column header
+            galleryimages: resolvedMediaUrls.join(',') // Maps directly to your sheet's galleryimages column
           }]
         };
 
@@ -321,7 +326,7 @@
         e.target.reset();
       } catch (err) {
         console.error(err);
-        errorEl.innerText = "Asset transmission network size rejection limit. Please select fewer or lighter assets.";
+        errorEl.innerText = "Error deploying inventory asset package: " + err.message;
         errorEl.classList.remove('hidden');
       } finally {
         submitBtn.innerText = "Publish New Item to Collection";
