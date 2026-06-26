@@ -200,14 +200,12 @@
     const address = document.getElementById('checkout-address').value.trim();
     const notes = document.getElementById('checkout-notes').value.trim();
     
-    // Check for empty fields
     if (!name || !email || !phone || !address) {
       errorEl.innerText = "Please fill in all mandatory fields before completing order.";
       errorEl.classList.remove('hidden');
       return;
     }
     
-    // Validate email pattern
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       errorEl.innerText = "Please provide a valid email format (e.g., name@domain.com).";
@@ -222,23 +220,40 @@
 
     const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
     
+    // Format item names and calculation parameters cleanly for spreadsheet storage
+    let itemsSummary = '';
+    let runningTotal = 0;
+    globalCart.forEach(cartItem => {
+      const match = loadedProducts.find(p => p.id === cartItem.id);
+      if (match) {
+        runningTotal += match.price;
+        itemsSummary += match.name + ' (' + cartItem.size + '), ';
+      }
+    });
+    // Strip trailing comma
+    itemsSummary = itemsSummary.replace(/, \s*$/, "");
+
+    // Build the strict SheetDB data wrap. SheetDB expects: { "data": [{...}] }
     const orderPayload = {
-      name: name,
-      email: email,
-      phone: phone,
-      address: address,
-      notes: notes,
-      cartItems: JSON.stringify(globalCart)
+      data: [{
+        id: "AURA-" + Math.floor(1000 + Math.random() * 9000),
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+        notes: notes || "None",
+        items: itemsSummary || "Empty Cart Transmitted",
+        total: "$" + runningTotal.toFixed(2),
+        status: "Pending"
+      }]
     };
 
-    fetch('https://formspree.io/f/mnnqevov', {
+    fetch('https://sheetdb.io/api/v1/lqwbo1nycajm0', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderPayload)
     })
+    .then(res => res.json())
     .then(() => {
       localStorage.removeItem('aura_cart');
       document.getElementById('cart-count').innerText = '0';
@@ -255,7 +270,7 @@
       }, 50);
     })
     .catch(err => {
-      console.error(err);
+      console.error("Database connection failure:", err);
       submitBtn.innerText = "RETRY ORDER";
       submitBtn.disabled = false;
     });

@@ -85,32 +85,29 @@
   </footer>
 
   <script>
-    // Robust local mock database simulating historical order flow
-    let ordersDb = [
-      {
-        id: "AURA-8941",
-        name: "Moreen Nesem",
-        email: "moreen.nesem@gmail.com",
-        phone: "+20 122 345 6789",
-        address: "Hdayek Al Kobba, Cairo, Egypt",
-        notes: "Leave package at front reception concierge desk, please.",
-        items: [{ name: "Tailored Wool Trouser", size: "L", price: 195.00 }],
-        status: "Pending"
-      },
-      {
-        id: "AURA-7102",
-        name: "Alexander Vance",
-        email: "vance.alex@studio.com",
-        phone: "+1 (555) 019-2834",
-        address: "742 Evergreen Terrace, New York, NY",
-        notes: "Fragile outer shell, use padded transport wrapping.",
-        items: [
-          { name: "Classic Oversized Trench", size: "M", price: 285.00 },
-          { name: "Heavyweight Pima Tee", size: "M", price: 65.00 }
-        ],
-        status: "Dispatched"
-      }
-    ];
+    const API_ENDPOINT = 'https://sheetdb.io/api/v1/lqwbo1nycajm0';
+    let ordersDb = [];
+
+    function fetchCloudOrders() {
+      fetch(API_ENDPOINT)
+        .then(res => res.json())
+        .then(data => {
+          // Map flat spreadsheet rows into a digestible structure for the dashboard layout
+          ordersDb = data.map(row => ({
+            id: row.id,
+            name: row.name,
+            email: row.email,
+            phone: row.phone,
+            address: row.address,
+            notes: row.notes,
+            displayItems: row.items,
+            totalPriceStr: row.total,
+            status: row.status || "Pending"
+          }));
+          renderDashboardView();
+        })
+        .catch(err => console.error("Failed to sync with data cloud:", err));
+    }
 
     function renderDashboardView() {
       const tbody = document.getElementById('admin-table-body');
@@ -119,7 +116,7 @@
       if (ordersDb.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-12 text-center text-neutral-400 italic tracking-wide">All shipping manifestations cleared. Operations idle.</td></tr>';
         document.getElementById('kpi-revenue').innerText = "$0.00";
-        document.getElementById('kpi-queue').innerText = "0 Orders";
+        document.getElementById('kpi-queue').innerText = "0";
         document.getElementById('kpi-average').innerText = "$0.00";
         document.getElementById('order-count-badge').innerText = "0 Records Loaded";
         return;
@@ -128,52 +125,39 @@
       let grandTotal = 0;
       let activeQueue = 0;
 
-      ordersDb.forEach((order, index) => {
-        let orderTotal = 0;
-        let itemsHtml = order.items.map(item => {
-          orderTotal += item.price;
-          return '<div class="mb-1 font-medium text-neutral-800">' + item.name + ' <span class="text-neutral-400 font-normal">(' + item.size + ')</span></div>';
-        }).join('');
-
-        grandTotal += orderTotal;
+      ordersDb.forEach(order => {
+        // Parse numerical value out of total string (e.g. "$195.00" -> 195.00)
+        const parsedPrice = parseFloat(order.totalPriceStr.replace(/[^0-9.]/g, "")) || 0;
+        grandTotal += parsedPrice;
         if (order.status !== "Delivered") activeQueue++;
 
-        // Status pill color parameters
-        let statusStyle = "bg-amber-50 text-amber-700 border-amber-200/50";
-        if (order.status === "Dispatched") statusStyle = "bg-blue-50 text-blue-700 border-blue-200/50";
-        if (order.status === "Delivered") statusStyle = "bg-emerald-50 text-emerald-700 border-emerald-200/50";
-
-        const notesHtml = order.notes
+        const notesHtml = (order.notes && order.notes !== 'None')
           ? '<div class="text-neutral-400 text-[11px] italic mt-1.5 font-light">Notes: &ldquo;' + order.notes + '&rdquo;</div>'
           : '';
 
         tbody.innerHTML += `
           <tr class="hover:bg-neutral-50/50 transition-colors">
-            <!-- Col 1: Identity -->
             <td class="px-6 py-5">
               <div class="text-sm font-medium text-neutral-900">` + order.name + `</div>
               <div class="text-neutral-400 text-[11px] mt-0.5">` + order.email + `</div>
               <div class="text-neutral-400 text-[11px] font-mono mt-0.5">` + order.phone + `</div>
             </td>
-            <!-- Col 2: Manifest Selections -->
             <td class="px-6 py-5">
-              ` + itemsHtml + `
-              <div class="text-[11px] font-medium text-neutral-900 mt-2">Total Order Allocation: $` + orderTotal.toFixed(2) + `</div>
+              <div class="font-medium text-neutral-800">` + order.displayItems + `</div>
+              <div class="text-[11px] font-medium text-neutral-900 mt-2">Total Order Allocation: ` + order.totalPriceStr + `</div>
             </td>
-            <!-- Col 3: Fulfillment Logistics -->
             <td class="px-6 py-5 max-w-xs">
-              <div class="text-neutral-700 font-light truncate hover:text-clip hover:whitespace-normal">` + order.address + `</div>
+              <div class="text-neutral-700 font-light leading-relaxed">` + order.address + `</div>
               ` + notesHtml + `
             </td>
-            <!-- Col 4: Status Actions -->
             <td class="px-6 py-5 text-right whitespace-nowrap">
               <div class="flex items-center justify-end space-x-4">
-                <select onchange="updateOrderStatus(` + index + `, this.value)" class="bg-neutral-50 border border-neutral-200 text-[10px] tracking-widest uppercase px-3 py-1.5 text-neutral-700 font-medium focus:outline-none focus:border-black transition-colors rounded-none cursor-pointer">
+                <select onchange="updateOrderStatus('` + order.id + `', this.value)" class="bg-neutral-50 border border-neutral-200 text-[10px] tracking-widest uppercase px-3 py-1.5 text-neutral-700 font-medium focus:outline-none focus:border-black transition-colors rounded-none cursor-pointer">
                   <option value="Pending" ` + (order.status === 'Pending' ? 'selected' : '') + `>Pending</option>
                   <option value="Dispatched" ` + (order.status === 'Dispatched' ? 'selected' : '') + `>Dispatched</option>
                   <option value="Delivered" ` + (order.status === 'Delivered' ? 'selected' : '') + `>Delivered</option>
                 </select>
-                <button onclick="purgeOrderRecord(` + index + `)" class="text-[10px] tracking-widest uppercase text-neutral-300 hover:text-red-600 font-medium transition-colors border-b border-transparent hover:border-red-600 pb-0.5" title="Remove Record">
+                <button onclick="purgeOrderRecord('` + order.id + `')" class="text-[10px] tracking-widest uppercase text-neutral-300 hover:text-red-600 font-medium transition-colors border-b border-transparent hover:border-red-600 pb-0.5" title="Remove Record">
                   Delete
                 </button>
               </div>
@@ -182,24 +166,34 @@
         `;
       });
 
-      // Render updated KPI calculations dynamically
       document.getElementById('kpi-revenue').innerText = "$" + grandTotal.toFixed(2);
       document.getElementById('kpi-queue').innerText = activeQueue;
       document.getElementById('kpi-average').innerText = "$" + (grandTotal / ordersDb.length).toFixed(2);
       document.getElementById('order-count-badge').innerText = ordersDb.length + " Records Loaded";
     }
 
-    function updateOrderStatus(index, newStatus) {
-      ordersDb[index].status = newStatus;
-      renderDashboardView();
+    function updateOrderStatus(orderId, newStatus) {
+      // SheetDB PATCH: update rows where the 'id' column matches orderId
+      fetch(API_ENDPOINT + '/id/' + orderId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { status: newStatus } })
+      })
+      .then(() => fetchCloudOrders())
+      .catch(err => console.error("Status update failed:", err));
     }
 
-    function purgeOrderRecord(index) {
-      ordersDb.splice(index, 1);
-      renderDashboardView();
+    function purgeOrderRecord(orderId) {
+      // SheetDB DELETE: remove rows where the 'id' column matches orderId
+      fetch(API_ENDPOINT + '/id/' + orderId, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(() => fetchCloudOrders())
+      .catch(err => console.error("Record deletion failed:", err));
     }
 
-    document.addEventListener('DOMContentLoaded', renderDashboardView);
+    document.addEventListener('DOMContentLoaded', fetchCloudOrders);
   </script>
 </body>
 </html>
