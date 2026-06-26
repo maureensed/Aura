@@ -297,14 +297,18 @@
       }, 400);
     }
 
-    fetch('products.json')
+    fetch('https://sheetdb.io/api/v1/lqwbo1nycajm0?sheet=products')
       .then(res => res.json())
       .then(products => {
-        loadedProducts = products; // Cache globally
+        // Cache globally and parse price to numbers for the cart logic
+        loadedProducts = products.map(p => ({
+          ...p,
+          price: parseFloat(p.price) || 0
+        }));
         const grid = document.getElementById('product-grid');
         grid.innerHTML = ''; 
         
-        products.forEach(product => {
+        loadedProducts.forEach(product => {
           let tagBadge = '';
           if (product.tag) {
             tagBadge = '<span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-[10px] tracking-widest uppercase font-semibold px-2.5 py-1 z-10 text-neutral-900">' + product.tag + '</span>';
@@ -314,7 +318,7 @@
             <div class="group cursor-pointer relative" onclick="window.location.href='product.html?id=` + product.id + `'">
               <div class="aspect-[3/4] overflow-hidden bg-neutral-100 mb-4 relative">
                 ` + tagBadge + `
-                <img src="` + product.primaryImage + `" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" alt="` + product.name + `">
+                <img src="` + product.primaryimage + `" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" alt="` + product.name + `">
               </div>
               <div class="flex justify-between items-start">
                 <div>
