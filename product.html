@@ -107,60 +107,81 @@
   </main>
 
   <!-- Core JavaScript Architecture -->
-  <script>
-    let selectedSizeElement = null;
-    let globalCartCount = 0;
+ <script>
+  let selectedSizeElement = null;
+  let currentProductId = '';
 
-    function selectSize(buttonElement) {
-      // Remove selection state from previous button
-      if (selectedSizeElement) {
-        selectedSizeElement.classList.remove('border-black', 'bg-neutral-900', 'text-white');
-        selectedSizeElement.classList.add('border-neutral-300', 'bg-white', 'text-neutral-900');
-      }
-      // Apply active selection styles
-      buttonElement.classList.remove('border-neutral-300', 'bg-white', 'text-neutral-900');
-      buttonElement.classList.add('border-black', 'bg-neutral-900', 'text-white');
-      selectedSizeElement = buttonElement;
-    }
-
-    function addToCart() {
-      if (!selectedSizeElement) {
-        alert("Conversion Block: Please select a size specification prior to checkout initialization.");
-        return;
-      }
-      globalCartCount++;
-      document.getElementById('cart-count').innerText = globalCartCount;
-      
-      // Fun conversion notification feedback
-      alert("System Action: Item securely aggregated into checkout vector.");
-    }
-
-    // Dynamic Parameter Parsing Execution Loop
-    document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const productId = urlParams.get('id');
-
-      fetch('products.json')
-        .then(res => res.json())
-        .then(products => {
-          const product = products.find(p => p.id === productId) || products[0]; // Fallback to index 0 if parameter breaks
-          
-          if (product) {
-            document.getElementById('product-image').src = product.primaryImage;
-            document.getElementById('product-name').innerText = product.name;
-            document.getElementById('product-price').innerText = `$${product.price.toFixed(2)}`;
-            document.getElementById('product-category').innerText = `// ${product.category}`;
-            document.getElementById('product-description').innerText = product.description;
-            
-            if (product.tag) {
-              const tagEl = document.getElementById('product-tag');
-              tagEl.innerText = product.tag;
-              tagEl.classList.remove('hidden');
-            }
-          }
-        })
-        .catch(err => console.error("Dynamic product assembly error:", err));
+  function selectSize(buttonElement) {
+    const buttons = document.querySelectorAll('.size-btn');
+    buttons.forEach(btn => {
+      btn.classList.remove('border-black', 'bg-neutral-900', 'text-white');
+      btn.classList.add('border-neutral-300', 'bg-white', 'text-neutral-900');
     });
-  </script>
+    buttonElement.classList.remove('border-neutral-300', 'bg-white', 'text-neutral-900');
+    buttonElement.classList.add('border-black', 'bg-neutral-900', 'text-white');
+    selectedSizeElement = buttonElement;
+  }
+
+  function addToCart() {
+    if (!selectedSizeElement) {
+      alert("Please select a size before adding to bag.");
+      return;
+    }
+    
+    // Read current cart, push new item, save back to storage
+    let globalCart = [];
+    try {
+      globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+    } catch (e) {
+      globalCart = [];
+    }
+    
+    const itemToAdd = {
+      id: currentProductId,
+      size: selectedSizeElement.innerText.trim()
+    };
+    
+    globalCart.push(itemToAdd);
+    localStorage.setItem('aura_cart', JSON.stringify(globalCart));
+    
+    // Update count on current page header
+    document.getElementById('cart-count').innerText = globalCart.length;
+    alert("Item added to bag successfully!");
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Sync cart count on load
+    try {
+      const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+      document.getElementById('cart-count').innerText = globalCart.length;
+    } catch(e) {
+      document.getElementById('cart-count').innerText = 0;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    currentProductId = urlParams.get('id');
+
+    fetch('products.json')
+      .then(res => res.json())
+      .then(products => {
+        const product = products.find(p => p.id === currentProductId) || products[0];
+        if (product) {
+          currentProductId = product.id;
+          document.getElementById('product-image').src = product.primaryImage;
+          document.getElementById('product-name').innerText = product.name;
+          document.getElementById('product-price').innerText = `$${product.price.toFixed(2)}`;
+          document.getElementById('product-category').innerText = `// ${product.category}`;
+          document.getElementById('product-description').innerText = product.description;
+          
+          if (product.tag) {
+            const tagEl = document.getElementById('product-tag');
+            tagEl.innerText = product.tag;
+            tagEl.classList.remove('hidden');
+          }
+        }
+      })
+      .catch(err => console.error("Error loading product data:", err));
+  });
+</script>
 </body>
 </html>

@@ -71,11 +71,15 @@
   <!-- Core JavaScript Pipeline -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // 1. Instantly read from localStorage and lock in the cart count
-    const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-    document.getElementById('cart-count').innerText = globalCart.length;
+    // 1. Force check the cart state from localStorage immediately
+    try {
+      const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+      document.getElementById('cart-count').innerText = globalCart.length;
+    } catch(e) {
+      document.getElementById('cart-count').innerText = 0;
+    }
 
-    // 2. Fetch and render the products catalog cleanly without broken template literals
+    // 2. Fetch and render products catalog
     fetch('products.json')
       .then(res => res.json())
       .then(products => {
@@ -83,7 +87,6 @@
         grid.innerHTML = ''; 
         
         products.forEach(product => {
-          // Construct HTML layout strings to completely avoid backslash character issues
           let tagBadge = '';
           if (product.tag) {
             tagBadge = '<span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-[10px] tracking-widest uppercase font-semibold px-2.5 py-1 z-10 text-neutral-900">' + product.tag + '</span>';
@@ -106,7 +109,7 @@
           `;
         });
       })
-      .catch(err => console.error("Data ingestion failure:", err));
+      .catch(err => console.error("Error loading catalog data:", err));
   });
 </script>
 </body>
