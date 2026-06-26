@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA Studio — Operational Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+    .brand-font { font-family: 'Playfair Display', serif; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfbf9; }
+  </style>
+</head>
+<body class="text-neutral-900 antialiased min-h-screen flex flex-col">
+
+  <!-- Minimal Header Navigation -->
+  <header class="border-b border-neutral-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-40 px-8 py-5">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <span class="brand-font text-2xl font-light tracking-widest text-neutral-900">AURA</span>
+        <span class="text-[10px] tracking-widest uppercase bg-neutral-100 text-neutral-500 font-semibold px-2 py-0.5 border border-neutral-200/40">Studio Admin</span>
+      </div>
+      <a href="index.html" class="text-xs tracking-widest uppercase text-neutral-400 hover:text-black transition-colors">← Live Catalog</a>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-8 py-10">
+    
+    <!-- Context Header -->
+    <div class="mb-10">
+      <h2 class="brand-font text-4xl font-light tracking-wide mb-2">Operations Ledger</h2>
+      <p class="text-xs text-neutral-400 tracking-wider uppercase">Fulfillment Engine & Pipeline Analytics</p>
+    </div>
+
+    <!-- ================= EXECUTIVE METRIC CARDS ================= -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <!-- Card 1 -->
+      <div class="bg-white border border-neutral-200/60 p-6 shadow-sm relative overflow-hidden">
+        <p class="text-[10px] tracking-widest uppercase text-neutral-400 font-medium mb-1">Gross Revenue Pipeline</p>
+        <h3 id="kpi-revenue" class="text-3xl font-light tracking-wide text-neutral-900">$545.00</h3>
+        <div class="absolute bottom-0 inset-x-0 h-0.5 bg-neutral-900"></div>
+      </div>
+      <!-- Card 2 -->
+      <div class="bg-white border border-neutral-200/60 p-6 shadow-sm relative overflow-hidden">
+        <p class="text-[10px] tracking-widest uppercase text-neutral-400 font-medium mb-1">Active Processing Queue</p>
+        <h3 id="kpi-queue" class="text-3xl font-light tracking-wide text-neutral-900">2 Orders</h3>
+        <div class="absolute bottom-0 inset-x-0 h-0.5 bg-neutral-400"></div>
+      </div>
+      <!-- Card 3 -->
+      <div class="bg-white border border-neutral-200/60 p-6 shadow-sm relative overflow-hidden">
+        <p class="text-[10px] tracking-widest uppercase text-neutral-400 font-medium mb-1">Average Cart Allocation</p>
+        <h3 id="kpi-average" class="text-3xl font-light tracking-wide text-neutral-900">$272.50</h3>
+        <div class="absolute bottom-0 inset-x-0 h-0.5 bg-neutral-200"></div>
+      </div>
+    </div>
+
+    <!-- ================= LIVE ORDER LEDGER TABLE ================= -->
+    <div class="bg-white border border-neutral-200/60 shadow-sm overflow-hidden">
+      <div class="px-6 py-5 border-b border-neutral-200/60 bg-neutral-50/50 flex justify-between items-center">
+        <h4 class="text-xs tracking-widest uppercase font-semibold text-neutral-500">Incoming Shipment Queue</h4>
+        <span id="order-count-badge" class="text-[10px] font-medium bg-neutral-900 text-white px-2 py-0.5 uppercase tracking-wider">2 Records Loaded</span>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-neutral-200/60 bg-neutral-50/30 text-[10px] tracking-widest uppercase text-neutral-400 font-medium">
+              <th class="px-6 py-4">Customer Credentials</th>
+              <th class="px-6 py-4">Bespoke Manifest</th>
+              <th class="px-6 py-4">Fulfillment Logistics</th>
+              <th class="px-6 py-4 text-right">Status Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body" class="divide-y divide-neutral-100 text-xs">
+            <!-- Simulated rows will render dynamically here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="border-t border-neutral-200/40 px-8 py-6 text-center text-[10px] text-neutral-400 tracking-widest uppercase bg-white">
+    AURA Corporate Hub &copy; 2026 Engine Integration.
+  </footer>
+
+  <script>
+    // Robust local mock database simulating historical order flow
+    let ordersDb = [
+      {
+        id: "AURA-8941",
+        name: "Moreen Nesem",
+        email: "moreen.nesem@gmail.com",
+        phone: "+20 122 345 6789",
+        address: "Hdayek Al Kobba, Cairo, Egypt",
+        notes: "Leave package at front reception concierge desk, please.",
+        items: [{ name: "Tailored Wool Trouser", size: "L", price: 195.00 }],
+        status: "Pending"
+      },
+      {
+        id: "AURA-7102",
+        name: "Alexander Vance",
+        email: "vance.alex@studio.com",
+        phone: "+1 (555) 019-2834",
+        address: "742 Evergreen Terrace, New York, NY",
+        notes: "Fragile outer shell, use padded transport wrapping.",
+        items: [
+          { name: "Classic Oversized Trench", size: "M", price: 285.00 },
+          { name: "Heavyweight Pima Tee", size: "M", price: 65.00 }
+        ],
+        status: "Dispatched"
+      }
+    ];
+
+    function renderDashboardView() {
+      const tbody = document.getElementById('admin-table-body');
+      tbody.innerHTML = '';
+
+      if (ordersDb.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-12 text-center text-neutral-400 italic tracking-wide">All shipping manifestations cleared. Operations idle.</td></tr>';
+        document.getElementById('kpi-revenue').innerText = "$0.00";
+        document.getElementById('kpi-queue').innerText = "0 Orders";
+        document.getElementById('kpi-average').innerText = "$0.00";
+        document.getElementById('order-count-badge').innerText = "0 Records Loaded";
+        return;
+      }
+
+      let grandTotal = 0;
+      let activeQueue = 0;
+
+      ordersDb.forEach((order, index) => {
+        let orderTotal = 0;
+        let itemsHtml = order.items.map(item => {
+          orderTotal += item.price;
+          return '<div class="mb-1 font-medium text-neutral-800">' + item.name + ' <span class="text-neutral-400 font-normal">(' + item.size + ')</span></div>';
+        }).join('');
+
+        grandTotal += orderTotal;
+        if (order.status !== "Delivered") activeQueue++;
+
+        // Status pill color parameters
+        let statusStyle = "bg-amber-50 text-amber-700 border-amber-200/50";
+        if (order.status === "Dispatched") statusStyle = "bg-blue-50 text-blue-700 border-blue-200/50";
+        if (order.status === "Delivered") statusStyle = "bg-emerald-50 text-emerald-700 border-emerald-200/50";
+
+        const notesHtml = order.notes
+          ? '<div class="text-neutral-400 text-[11px] italic mt-1.5 font-light">Notes: &ldquo;' + order.notes + '&rdquo;</div>'
+          : '';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-neutral-50/50 transition-colors">
+            <!-- Col 1: Identity -->
+            <td class="px-6 py-5">
+              <div class="text-sm font-medium text-neutral-900">` + order.name + `</div>
+              <div class="text-neutral-400 text-[11px] mt-0.5">` + order.email + `</div>
+              <div class="text-neutral-400 text-[11px] font-mono mt-0.5">` + order.phone + `</div>
+            </td>
+            <!-- Col 2: Manifest Selections -->
+            <td class="px-6 py-5">
+              ` + itemsHtml + `
+              <div class="text-[11px] font-medium text-neutral-900 mt-2">Total Order Allocation: $` + orderTotal.toFixed(2) + `</div>
+            </td>
+            <!-- Col 3: Fulfillment Logistics -->
+            <td class="px-6 py-5 max-w-xs">
+              <div class="text-neutral-700 font-light truncate hover:text-clip hover:whitespace-normal">` + order.address + `</div>
+              ` + notesHtml + `
+            </td>
+            <!-- Col 4: Status Actions -->
+            <td class="px-6 py-5 text-right whitespace-nowrap">
+              <div class="flex items-center justify-end space-x-3">
+                <span class="px-2.5 py-0.5 text-[10px] font-medium border uppercase tracking-wider rounded-full ` + statusStyle + `">
+                  ` + order.status + `
+                </span>
+                <select onchange="updateOrderStatus(` + index + `, this.value)" class="bg-transparent border border-neutral-200 text-[11px] px-2 py-1 text-neutral-600 focus:outline-none focus:border-black transition-colors rounded-sm">
+                  <option value="Pending" ` + (order.status === 'Pending' ? 'selected' : '') + `>Pending</option>
+                  <option value="Dispatched" ` + (order.status === 'Dispatched' ? 'selected' : '') + `>Dispatched</option>
+                  <option value="Delivered" ` + (order.status === 'Delivered' ? 'selected' : '') + `>Delivered</option>
+                </select>
+                <button onclick="purgeOrderRecord(` + index + `)" class="text-neutral-300 hover:text-red-500 transition-colors text-sm px-1" title="Purge Record">&times;</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      // Render updated KPI calculations dynamically
+      document.getElementById('kpi-revenue').innerText = "$" + grandTotal.toFixed(2);
+      document.getElementById('kpi-queue').innerText = activeQueue + " Active";
+      document.getElementById('kpi-average').innerText = "$" + (grandTotal / ordersDb.length).toFixed(2);
+      document.getElementById('order-count-badge').innerText = ordersDb.length + " Records Loaded";
+    }
+
+    function updateOrderStatus(index, newStatus) {
+      ordersDb[index].status = newStatus;
+      renderDashboardView();
+    }
+
+    function purgeOrderRecord(index) {
+      ordersDb.splice(index, 1);
+      renderDashboardView();
+    }
+
+    document.addEventListener('DOMContentLoaded', renderDashboardView);
+  </script>
+</body>
+</html>
