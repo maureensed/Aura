@@ -94,8 +94,16 @@
         <input type="text" id="prod-category" placeholder="Category (e.g., Dresses, Tops, Bottoms)" class="w-full bg-transparent border border-neutral-300 px-4 py-3 text-xs tracking-wider placeholder-neutral-400 focus:outline-none focus:border-black transition-colors">
         <input type="number" step="0.01" id="prod-price" placeholder="Retail Allocation Value / Price (e.g., 245.00)" class="w-full bg-transparent border border-neutral-300 px-4 py-3 text-xs tracking-wider placeholder-neutral-400 focus:outline-none focus:border-black transition-colors">
         <input type="text" id="prod-tag" placeholder="Visual Tag Badge / Optional (e.g., New Arrival, Limited Edition)" class="w-full bg-transparent border border-neutral-300 px-4 py-3 text-xs tracking-wider placeholder-neutral-400 focus:outline-none focus:border-black transition-colors">
-        <div class="md:col-span-2">
-          <input type="url" id="prod-image" placeholder="Primary Visual Media URL Asset Link (Unsplash high-res link)" class="w-full bg-transparent border border-neutral-300 px-4 py-3 text-xs tracking-wider placeholder-neutral-400 focus:outline-none focus:border-black transition-colors">
+        <!-- Unified Media Input Zone -->
+        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] text-neutral-400 tracking-widest uppercase mb-1 font-mono">Primary Display Cover Asset</label>
+            <input type="file" id="prod-cover-file" accept="image/*" class="w-full bg-transparent border border-neutral-300 px-4 py-2.5 text-xs focus:outline-none focus:border-black file:mr-4 file:py-1 file:px-3 file:border-0 file:text-xs file:bg-neutral-900 file:text-white cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-[10px] text-neutral-400 tracking-widest uppercase mb-1 font-mono">Unified Lookbook Media (Multiple Images/Videos)</label>
+            <input type="file" id="prod-media-files" accept="image/*,video/mp4" multiple class="w-full bg-transparent border border-neutral-300 px-4 py-2.5 text-xs focus:outline-none focus:border-black file:mr-4 file:py-1 file:px-3 file:border-0 file:text-xs file:bg-neutral-900 file:text-white cursor-pointer">
+          </div>
         </div>
         <div class="md:col-span-2 text-right mt-2">
           <button type="submit" class="bg-[#1c1b1a] text-white text-xs tracking-widest uppercase px-8 py-4 font-medium transition-all duration-300 hover:bg-neutral-800 active:scale-[0.99]">
@@ -220,59 +228,68 @@
       .catch(err => console.error("Record deletion failed:", err));
     }
 
-    function publishNewInventoryItem(e) {
+    async function publishNewInventoryItem(e) {
       e.preventDefault();
       const errorEl = document.getElementById('product-form-error');
       const successEl = document.getElementById('product-form-success');
-
+      
       const name = document.getElementById('prod-name').value.trim();
       const category = document.getElementById('prod-category').value.trim();
       const price = parseFloat(document.getElementById('prod-price').value);
       const tag = document.getElementById('prod-tag').value.trim();
-      const image = document.getElementById('prod-image').value.trim();
-
-      if (!name || !category || isNaN(price) || !image) {
-        errorEl.innerText = "Please fulfill all core operational fields before publishing.";
+      
+      const coverFile = document.getElementById('prod-cover-file').files[0];
+      const mediaFiles = document.getElementById('prod-media-files').files;
+      
+      if (!name || !category || isNaN(price) || !coverFile) {
+        errorEl.innerText = "Please complete core specifications and provide a primary display asset.";
         errorEl.classList.remove('hidden');
         successEl.classList.add('hidden');
         return;
       }
 
-      errorEl.classList.add('hidden');
       const submitBtn = e.target.querySelector('button[type="submit"]');
-      submitBtn.innerText = "PROPAGATING ASSETS...";
+      submitBtn.innerText = "PROCESSING MEDIA ASSETS...";
       submitBtn.disabled = true;
 
-      const itemPayload = {
-        data: [{
-          id: "aura-" + Math.floor(100 + Math.random() * 900),
-          name: name,
-          category: category,
-          price: price,
-          primaryimage: image,
-          tag: tag || ""
-        }]
-      };
+      // Helper to convert files to Base64 strings for storage
+      const fileToDataUri = (file) => new Promise((res) => {
+        const reader = new FileReader();
+        reader.onload = (event) => res(event.target.result);
+        reader.readAsDataURL(file);
+      });
 
-      // Targeting the dedicated products sheet tab via query sub-path parameter
-      fetch(API_ENDPOINT + '?sheet=products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(itemPayload)
-      })
-      .then(res => res.json())
-      .then(() => {
+      try {
+        const primaryImageUri = await fileToDataUri(coverFile);
+        const mediaUriPromises = Array.from(mediaFiles).map(file => fileToDataUri(file));
+        const mediaUriList = await Promise.all(mediaUriPromises);
+
+        await fetch(API_ENDPOINT + '?sheet=products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data: [{
+              id: "aura-" + Math.floor(100 + Math.random() * 900),
+              name: name,
+              category: category,
+              price: price,
+              tag: tag,
+              primaryimage: primaryImageUri,
+              lookbookmedia: mediaUriList.join(',')
+            }]
+          })
+        });
+        
         successEl.classList.remove('hidden');
         e.target.reset();
+      } catch (err) {
+        console.error(err);
+        errorEl.innerText = "Transmission error. Please check file sizes.";
+        errorEl.classList.remove('hidden');
+      } finally {
         submitBtn.innerText = "Publish New Item to Collection";
         submitBtn.disabled = false;
-      })
-      .catch(err => {
-        console.error(err);
-        errorEl.innerText = "Asset transmission network error.";
-        errorEl.classList.remove('hidden');
-        submitBtn.disabled = false;
-      });
+      }
     }
 
     document.addEventListener('DOMContentLoaded', fetchCloudOrders);
