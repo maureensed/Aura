@@ -43,7 +43,7 @@
       <!-- Card 2 -->
       <div class="bg-white border border-neutral-200/60 p-6 shadow-sm relative overflow-hidden">
         <p class="text-[10px] tracking-widest uppercase text-neutral-400 font-medium mb-1">Active Processing Queue</p>
-        <h3 id="kpi-queue" class="text-3xl font-light tracking-wide text-neutral-900">2 Orders</h3>
+        <h3 id="kpi-queue" class="text-3xl font-light tracking-wide text-neutral-900">2</h3>
         <div class="absolute bottom-0 inset-x-0 h-0.5 bg-neutral-400"></div>
       </div>
       <!-- Card 3 -->
@@ -167,16 +167,15 @@
             </td>
             <!-- Col 4: Status Actions -->
             <td class="px-6 py-5 text-right whitespace-nowrap">
-              <div class="flex items-center justify-end space-x-3">
-                <span class="px-2.5 py-0.5 text-[10px] font-medium border uppercase tracking-wider rounded-full ` + statusStyle + `">
-                  ` + order.status + `
-                </span>
-                <select onchange="updateOrderStatus(` + index + `, this.value)" class="bg-transparent border border-neutral-200 text-[11px] px-2 py-1 text-neutral-600 focus:outline-none focus:border-black transition-colors rounded-sm">
+              <div class="flex items-center justify-end space-x-4">
+                <select onchange="updateOrderStatus(` + index + `, this.value)" class="bg-neutral-50 border border-neutral-200 text-[10px] tracking-widest uppercase px-3 py-1.5 text-neutral-700 font-medium focus:outline-none focus:border-black transition-colors rounded-none cursor-pointer">
                   <option value="Pending" ` + (order.status === 'Pending' ? 'selected' : '') + `>Pending</option>
                   <option value="Dispatched" ` + (order.status === 'Dispatched' ? 'selected' : '') + `>Dispatched</option>
                   <option value="Delivered" ` + (order.status === 'Delivered' ? 'selected' : '') + `>Delivered</option>
                 </select>
-                <button onclick="purgeOrderRecord(` + index + `)" class="text-neutral-300 hover:text-red-500 transition-colors text-sm px-1" title="Purge Record">&times;</button>
+                <button onclick="purgeOrderRecord(` + index + `)" class="text-[10px] tracking-widest uppercase text-neutral-300 hover:text-red-600 font-medium transition-colors border-b border-transparent hover:border-red-600 pb-0.5" title="Remove Record">
+                  Delete
+                </button>
               </div>
             </td>
           </tr>
@@ -185,7 +184,7 @@
 
       // Render updated KPI calculations dynamically
       document.getElementById('kpi-revenue').innerText = "$" + grandTotal.toFixed(2);
-      document.getElementById('kpi-queue').innerText = activeQueue + " Active";
+      document.getElementById('kpi-queue').innerText = activeQueue;
       document.getElementById('kpi-average').innerText = "$" + (grandTotal / ordersDb.length).toFixed(2);
       document.getElementById('order-count-badge').innerText = ordersDb.length + " Records Loaded";
     }
