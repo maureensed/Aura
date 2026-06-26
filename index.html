@@ -71,11 +71,11 @@
   <!-- Core JavaScript Pipeline -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // 1. Sync the global cart counter from localStorage
+    // 1. Instantly read from localStorage and lock in the cart count
     const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
     document.getElementById('cart-count').innerText = globalCart.length;
 
-    // 2. Fetch and render the products catalog cleanly
+    // 2. Fetch and render the products catalog cleanly without broken template literals
     fetch('products.json')
       .then(res => res.json())
       .then(products => {
@@ -83,18 +83,24 @@
         grid.innerHTML = ''; 
         
         products.forEach(product => {
+          // Construct HTML layout strings to completely avoid backslash character issues
+          let tagBadge = '';
+          if (product.tag) {
+            tagBadge = '<span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-[10px] tracking-widest uppercase font-semibold px-2.5 py-1 z-10 text-neutral-900">' + product.tag + '</span>';
+          }
+
           grid.innerHTML += `
-            <div class="group cursor-pointer relative" onclick="window.location.href='product.html?id=${product.id}'">
+            <div class="group cursor-pointer relative" onclick="window.location.href='product.html?id=` + product.id + `'">
               <div class="aspect-[3/4] overflow-hidden bg-neutral-100 mb-4 relative">
-                ${product.tag ? `<span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-[10px] tracking-widest uppercase font-semibold px-2.5 py-1 z-10 text-neutral-900">${product.tag}</span>` : ''}
-                <img src="${product.primaryImage}" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" alt="${product.name}">
+                ` + tagBadge + `
+                <img src="` + product.primaryImage + `" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" alt="` + product.name + `">
               </div>
               <div class="flex justify-between items-start">
                 <div>
-                  <p class="text-xs text-neutral-400 tracking-wider uppercase mb-1">${product.category}</p>
-                  <h3 class="text-sm font-medium text-neutral-800 tracking-wide">${product.name}</h3>
+                  <p class="text-xs text-neutral-400 tracking-wider uppercase mb-1">// ` + product.category + `</p>
+                  <h3 class="text-sm font-medium text-neutral-800 tracking-wide">` + product.name + `</h3>
                 </div>
-                <p class="text-sm font-medium text-neutral-900">$${product.price.toFixed(2)}</p>
+                <p class="text-sm font-medium text-neutral-900">$` + product.price.toFixed(2) + `</p>
               </div>
             </div>
           `;
