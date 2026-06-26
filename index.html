@@ -34,9 +34,9 @@
       
       <div class="flex items-center space-x-6 text-xs tracking-widest uppercase font-medium">
         <a href="#" class="hover:text-neutral-500 transition-colors">Search</a>
-        <a href="#" class="relative hover:text-neutral-500 transition-colors">
+        <button onclick="toggleCartDrawer()" class="relative hover:text-neutral-500 transition-colors cursor-pointer">
           Cart (<span id="cart-count">0</span>)
-        </a>
+        </button>
       </div>
     </div>
   </nav>
@@ -68,21 +68,128 @@
     </div>
   </main>
 
+<!-- ================= SLIDE-OUT CART DRAWER & CHECKOUT ================= -->
+<div id="cart-drawer" class="fixed inset-0 z-50 invisible transition-opacity duration-300">
+  <!-- Backdrop Blur overlay -->
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="toggleCartDrawer()"></div>
+  
+  <!-- Drawer Sidebar Content Container -->
+  <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[#fcfbf9] shadow-2xl p-8 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-out h-full" id="drawer-content">
+    
+    <!-- Drawer Header -->
+    <div class="flex justify-between items-center pb-6 border-b border-neutral-200/60">
+      <h3 class="brand-font text-2xl font-light tracking-wide text-neutral-900">Your Selection</h3>
+      <button onclick="toggleCartDrawer()" class="text-xs tracking-widest uppercase text-neutral-400 hover:text-black transition-colors">✕ Close</button>
+    </div>
+
+    <!-- Scrollable Active Selection Items List -->
+    <div id="cart-items-list" class="flex-1 overflow-y-auto py-6 space-y-6">
+      <!-- Dynamic cart items inject here -->
+    </div>
+
+    <!-- High-Converting Checkout Input Module -->
+    <div class="border-t border-neutral-200/60 pt-6 bg-[#fcfbf9]">
+      <div class="flex justify-between items-center mb-6">
+        <span class="text-xs tracking-widest uppercase font-medium text-neutral-400">Subtotal Estimated</span>
+        <span id="cart-subtotal" class="text-lg font-medium text-neutral-900">$0.00</span>
+      </div>
+
+      <!-- Compact Minimalist Customer Details Form -->
+      <form id="checkout-form" onsubmit="executeCommercialPurchase(event)" class="space-y-3 mb-6">
+        <input type="text" placeholder="Full Name" required class="w-full bg-transparent border border-neutral-300 px-4 py-3 text-xs tracking-wider placeholder-neutral-400 focus:outline-none focus:border-black transition-colors">
+        <input type="email" placeholder="Email Address" required class="w-full bg-transparent border border-neutral-300 px-4 py-3 text-xs tracking-wider placeholder-neutral-400 focus:outline-none focus:border-black transition-colors">
+        <input type="text" placeholder="Delivery Address" required class="w-full bg-transparent border border-neutral-300 px-4 py-3 text-xs tracking-wider placeholder-neutral-400 focus:outline-none focus:border-black transition-colors">
+        
+        <button type="submit" class="w-full bg-[#1c1b1a] text-white text-xs tracking-widest uppercase py-4 font-medium transition-all duration-300 hover:bg-neutral-800 active:scale-[0.99] mt-2">
+          Complete Purchase Order
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
   <!-- Core JavaScript Pipeline -->
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // 1. Force check the cart state from localStorage immediately
-    try {
-      const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-      document.getElementById('cart-count').innerText = globalCart.length;
-    } catch(e) {
-      document.getElementById('cart-count').innerText = 0;
+  let loadedProducts = [];
+
+  function toggleCartDrawer() {
+    const drawer = document.getElementById('cart-drawer');
+    const content = document.getElementById('drawer-content');
+    
+    if(drawer.classList.contains('invisible')) {
+      // Open state triggers
+      drawer.classList.remove('invisible');
+      setTimeout(() => content.classList.remove('translate-x-full'), 10);
+      renderCartDrawerItems();
+    } else {
+      // Close state triggers
+      content.classList.add('translate-x-full');
+      setTimeout(() => drawer.classList.add('invisible'), 300);
+    }
+  }
+
+  function renderCartDrawerItems() {
+    const cartList = document.getElementById('cart-items-list');
+    const subtotalEl = document.getElementById('cart-subtotal');
+    let globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+    
+    if (globalCart.length === 0) {
+      cartList.innerHTML = '<p class="text-xs text-neutral-400 font-light tracking-wide py-8 text-center">Your bag is currently empty.</p>';
+      subtotalEl.innerText = '$0.00';
+      return;
     }
 
-    // 2. Fetch and render products catalog
+    cartList.innerHTML = '';
+    let runningTotal = 0;
+
+    globalCart.forEach((cartItem, index) => {
+      const match = loadedProducts.find(p => p.id === cartItem.id);
+      if(match) {
+        runningTotal += match.price;
+        cartList.innerHTML += `
+          <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
+            <div class="flex items-center space-x-4">
+              <img src="${match.primaryImage}" class="w-16 h-20 object-cover bg-neutral-100" alt="Product thumbnail">
+              <div>
+                <h4 class="text-xs font-medium text-neutral-800 tracking-wide">${match.name}</h4>
+                <p class="text-[10px] text-neutral-400 tracking-wider uppercase mt-0.5">Size: ${cartItem.size}</p>
+                <button onclick="removeCartItem(${index})" class="text-[10px] text-neutral-400 underline uppercase mt-2 hover:text-red-500 transition-colors">Remove</button>
+              </div>
+            </div>
+            <p class="text-xs font-medium text-neutral-900">$${match.price.toFixed(2)}</p>
+          </div>
+        `;
+      }
+    });
+
+    subtotalEl.innerText = '$' + runningTotal.toFixed(2);
+  }
+
+  function removeCartItem(index) {
+    let globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+    globalCart.splice(index, 1);
+    localStorage.setItem('aura_cart', JSON.stringify(globalCart));
+    document.getElementById('cart-count').innerText = globalCart.length;
+    renderCartDrawerItems();
+  }
+
+  function executeCommercialPurchase(e) {
+    e.preventDefault();
+    alert("Purchase Success Sequence Initialized: Order processed seamlessly at the client interface edge!");
+    localStorage.removeItem('aura_cart');
+    document.getElementById('cart-count').innerText = '0';
+    document.getElementById('checkout-form').reset();
+    toggleCartDrawer();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+    document.getElementById('cart-count').innerText = globalCart.length;
+
     fetch('products.json')
       .then(res => res.json())
       .then(products => {
+        loadedProducts = products; // Cache globally
         const grid = document.getElementById('product-grid');
         grid.innerHTML = ''; 
         
@@ -109,7 +216,7 @@
           `;
         });
       })
-      .catch(err => console.error("Error loading catalog data:", err));
+      .catch(err => console.error("Data ingestion failure:", err));
   });
 </script>
 </body>
