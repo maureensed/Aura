@@ -1,0 +1,29 @@
+[
+  {
+    "id": "aura-001",
+    "name": "Classic Oversized Trench",
+    "price": 285.00,
+    "category": "Outerwear",
+    "tag": "Best Seller",
+    "primaryImage": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=600&auto=format&fit=crop",
+    "description": "Cut from premium water-resistant cotton twill. Designed with an intentional drape, dropped shoulders, and traditional storm flaps."
+  },
+  {
+    "id": "aura-002",
+    "name": "Heavyweight Pima Tee",
+    "price": 65.00,
+    "category": "Essentials",
+    "tag": "New In",
+    "primaryImage": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=600&auto=format&fit=crop",
+    "description": "Knit from 100% long-staple organic Pima cotton. Features a dense 280GSM weight that retains its structural silhouette."
+  },
+  {
+    "id": "aura-003",
+    "name": "Tailored Wool Trouser",
+    "price": 195.00,
+    "category": "Bottoms",
+    "tag": "Limited Edition",
+    "primaryImage": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=600&auto=format&fit=crop",
+    "description": "Crafted from responsibly sourced Italian merino wool. Relaxed through the thigh with a sharp pressed crease."
+  }
+]
