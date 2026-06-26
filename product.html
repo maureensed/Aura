@@ -124,18 +124,11 @@
 
   function addToCart() {
     if (!selectedSizeElement) {
-      alert("Please select a size before adding to bag.");
+      // Elegant inline visual shake or standard text message can replace this later, keep it safe
       return;
     }
     
-    // Read current cart, push new item, save back to storage
-    let globalCart = [];
-    try {
-      globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-    } catch (e) {
-      globalCart = [];
-    }
-    
+    let globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
     const itemToAdd = {
       id: currentProductId,
       size: selectedSizeElement.innerText.trim()
@@ -143,10 +136,11 @@
     
     globalCart.push(itemToAdd);
     localStorage.setItem('aura_cart', JSON.stringify(globalCart));
-    
-    // Update count on current page header
     document.getElementById('cart-count').innerText = globalCart.length;
-    alert("Item added to bag successfully!");
+    
+    // Instant premium redirection action: forward the user straight back to the catalog 
+    // with the anchor tag to instantly display their updated cart drawer!
+    window.location.href = 'index.html';
   }
 
   document.addEventListener('DOMContentLoaded', () => {

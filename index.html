@@ -68,6 +68,20 @@
     </div>
   </main>
 
+<!-- Custom Success Overlay Modal -->
+<div id="success-modal" class="fixed inset-0 z-50 invisible flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+  <div class="relative bg-[#fcfbf9] max-w-md w-full p-10 text-center shadow-2xl border border-neutral-200/60 transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+    <span class="text-4xl block mb-4">✨</span>
+    <h3 class="brand-font text-3xl font-light tracking-wide text-neutral-900 mb-2">Order Confirmed</h3>
+    <p class="text-xs text-neutral-400 tracking-widest uppercase mb-6">Thank you for shopping with AURA</p>
+    <p class="text-sm text-neutral-600 font-light leading-relaxed mb-8">Your bespoke selection has been logged into our routing matrix. A confirmation receipt and tracking itinerary will manifest in your inbox shortly.</p>
+    <button onclick="closeSuccessModal()" class="inline-block bg-[#1c1b1a] text-white text-xs tracking-widest uppercase px-8 py-3 font-medium transition-colors hover:bg-neutral-800">
+      Return To Studio
+    </button>
+  </div>
+</div>
+
 <!-- ================= SLIDE-OUT CART DRAWER & CHECKOUT ================= -->
 <div id="cart-drawer" class="fixed inset-0 z-50 invisible transition-opacity duration-300">
   <!-- Backdrop Blur overlay -->
@@ -175,11 +189,61 @@
 
   function executeCommercialPurchase(e) {
     e.preventDefault();
-    alert("Purchase Success Sequence Initialized: Order processed seamlessly at the client interface edge!");
-    localStorage.removeItem('aura_cart');
-    document.getElementById('cart-count').innerText = '0';
-    document.getElementById('checkout-form').reset();
-    toggleCartDrawer();
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerText;
+    submitBtn.innerText = "TRANSMITTING DATA...";
+    submitBtn.disabled = true;
+
+    const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+    
+    // Package customer data and selection vector together
+    const orderPayload = {
+      name: e.target.querySelector('input[placeholder="Full Name"]').value,
+      email: e.target.querySelector('input[placeholder="Email Address"]').value,
+      address: e.target.querySelector('input[placeholder="Delivery Address"]').value,
+      cartItems: JSON.stringify(globalCart)
+    };
+
+    // We utilize Formspree's public open submission layer for serverless routing
+    fetch('https://formspree.io/f/mnnqevov', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(orderPayload)
+    })
+    .then(() => {
+      // Clear cart memory on success
+      localStorage.removeItem('aura_cart');
+      document.getElementById('cart-count').innerText = '0';
+      e.target.reset();
+      
+      // Animate custom success modal view
+      toggleCartDrawer(); // Close the sidebar drawer slide
+      
+      const modal = document.getElementById('success-modal');
+      const content = document.getElementById('modal-content');
+      modal.classList.remove('invisible');
+      setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+      }, 50);
+    })
+    .catch(err => {
+      console.error("Order processing error:", err);
+      submitBtn.innerText = "RETRY ORDER";
+      submitBtn.disabled = false;
+    });
+  }
+
+  function closeSuccessModal() {
+    const modal = document.getElementById('success-modal');
+    const content = document.getElementById('modal-content');
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => modal.classList.add('invisible'), 300);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
