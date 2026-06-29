@@ -122,11 +122,11 @@
       return rawPath;
     }
     
-    // AppSheet requires the format: AppName-AccountID
-    const appIdentifier = "Aura-orders-974f932c-e0dc-4bac-af87-85ea88126d7c";
+    // Our verified AppSheet configuration details
+    const appIdentifier = "Aura-orders-515261609";
     const tableName = "products"; 
     
-    // Construct the official public asset delivery path
+    // Construct the official public asset delivery path using the true app name
     return `https://www.appsheet.com/template/gettablefileurl?appName=${encodeURIComponent(appIdentifier)}&tableName=${encodeURIComponent(tableName)}&fileName=${encodeURIComponent(rawPath)}`;
   }
 
