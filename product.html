@@ -114,6 +114,21 @@
 
   <!-- Core JavaScript Architecture -->
  <script>
+  const APPSHEET_APP_ID = "974f932c-e0dc-4bac-af87-85ea88126d7c";
+  const APPSHEET_TABLE_NAME = "products"; // Change this if your AppSheet sheet/table name is spelled differently
+
+  function formatAppSheetUrl(rawPath) {
+    if (!rawPath) return '';
+    
+    // If it's already an absolute external web address (e.g., YouTube link), return as-is
+    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
+      return rawPath;
+    }
+    
+    // Transform AppSheet relative file paths into public streaming URLs
+    return `https://www.appsheet.com/template/gettablefileurl?appName=${APPSHEET_APP_ID}&tableName=${APPSHEET_TABLE_NAME}&fileName=${encodeURIComponent(rawPath)}`;
+  }
+
   let selectedSizeElement = null;
   let currentProductId = '';
 
@@ -195,8 +210,9 @@
           <iframe class="w-full h-full border-0 pointer-events-none" src="https://player.vimeo.com/video/${videoId}?autoplay=1&loop=1&autopause=0&muted=1&background=1" allow="autoplay; encrypted-media"></iframe>
         `;
       } else {
+        const finalImageUrl = formatAppSheetUrl(url);
         slide.innerHTML = `
-          <img src="${url}" alt="AURA Collection Asset" class="w-full h-full object-cover select-none pointer-events-none">
+          <img src="${finalImageUrl}" alt="AURA Collection Asset" class="w-full h-full object-cover select-none pointer-events-none">
         `;
       }
       track.appendChild(slide);
