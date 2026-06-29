@@ -127,6 +127,16 @@
 
   <!-- Core JavaScript Pipeline -->
 <script>
+  function formatAppSheetUrl(rawPath) {
+    if (!rawPath) return '';
+    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
+      return rawPath;
+    }
+    const appIdentifier = "Aura-orders-515261609";
+    const tableName = "products"; 
+    return `https://www.appsheet.com/template/gettablefileurl?appName=${encodeURIComponent(appIdentifier)}&tableName=${encodeURIComponent(tableName)}&fileName=${encodeURIComponent(rawPath)}`;
+  }
+
   let loadedProducts = [];
 
   function toggleCartDrawer() {
@@ -314,11 +324,13 @@
             tagBadge = '<span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-[10px] tracking-widest uppercase font-semibold px-2.5 py-1 z-10 text-neutral-900">' + product.tag + '</span>';
           }
 
+          const cardImageUrl = formatAppSheetUrl(product.primaryimage);
+
           grid.innerHTML += `
             <div class="group cursor-pointer relative" onclick="window.location.href='product.html?id=` + product.id + `'">
               <div class="aspect-[3/4] overflow-hidden bg-neutral-100 mb-4 relative">
                 ` + tagBadge + `
-                <img src="` + product.primaryimage + `" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" alt="` + product.name + `">
+                <img src="` + cardImageUrl + `" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" alt="` + product.name + `">
               </div>
               <div class="flex justify-between items-start">
                 <div>
