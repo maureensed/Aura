@@ -257,21 +257,30 @@
       submitBtn.innerText = "UPLOADING ASSETS TO GOOGLE DRIVE...";
       submitBtn.disabled = true;
 
-      // Converts a local binary file to Base64 and transmits it securely to the Google Apps Script Web App
+      // Helper utility to convert a local file to a Base64 string and upload it to Google Drive via Apps Script
       const uploadToGoogleDrive = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (event) => {
-          const base64String = event.target.result.split(',')[1];
+          const base64String = event.target.result.split(',')[1]; // Extract raw base64 data
           
           try {
-            const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            // We use text/plain;charset=utf-8 to bypass strict browser CORS preflight checks.
+            // Google Apps Script reads the incoming raw text stream as JSON perfectly.
+            const response = await fetch('https://script.google.com/macros/s/AKfycbzOoU2-_o8gd-nMwDGYEMNIW4o-F2ZdM0JWXjAI5UtbVD2CSA8iWA3lMg2y_sx25BP4/exec', {
               method: 'POST',
+              headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+              },
               body: JSON.stringify({
                 filename: `aura-${Date.now()}-${file.name}`,
                 type: file.type,
                 base64: base64String
               })
             });
+            
+            if (!response.ok) {
+              throw new Error(`Network response error status code: ${response.status}`);
+            }
             
             const result = await response.json();
             if (result.status === 'success') {
