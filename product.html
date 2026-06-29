@@ -114,9 +114,6 @@
 
   <!-- Core JavaScript Architecture -->
  <script>
-  const APPSHEET_APP_ID = "974f932c-e0dc-4bac-af87-85ea88126d7c";
-  const APPSHEET_TABLE_NAME = "products"; // Change this if your AppSheet sheet/table name is spelled differently
-
   function formatAppSheetUrl(rawPath) {
     if (!rawPath) return '';
     
@@ -125,9 +122,11 @@
       return rawPath;
     }
     
-    // Transform AppSheet relative file paths into public streaming URLs
-    return `https://www.appsheet.com/template/gettablefileurl?appName=${APPSHEET_APP_ID}&tableName=${APPSHEET_TABLE_NAME}&fileName=${encodeURIComponent(rawPath)}`;
+    // Transform AppSheet relative file paths into public streaming CDN URLs
+    const appName = "974f932c-e0dc-4bac-af87-85ea88126d7c";
+    return `https://www.appsheet.com/get/?i=${appName}&tableName=products&fileName=${encodeURIComponent(rawPath)}`;
   }
+
 
   let selectedSizeElement = null;
   let currentProductId = '';
