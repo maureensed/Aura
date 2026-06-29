@@ -172,14 +172,14 @@
   let currentSlideIndex = 0;
   let totalMediaSlides = 0;
 
-  function setupUnifiedMediaCarousel(product) {
+  function setupUnifiedMediaCarousel(product, galleryRows = []) {
     const track = document.getElementById('carousel-track');
     if (!track) return;
     track.innerHTML = '';
     
     let mediaSlides = [];
     
-    // 1. Add the main primary cover image (from the "products" table)
+    // Add the primary cover image from the main products sheet
     if (product.primaryimage) {
       mediaSlides.push({
         url: product.primaryimage.trim(),
@@ -187,15 +187,12 @@
       });
     }
     
-    // 2. Add all nested child gallery images (from the "product_images" table)
-    // Check for common relational names like 'product_images' or 'Related product_images'
-    const childImages = product.product_images || product.Related_product_images || [];
-    if (Array.isArray(childImages)) {
-      childImages.forEach(item => {
-        // Extract the photo file path field from the child entry object
-        if (item.photo) {
+    // Add all the secondary image records resolved from our second API query
+    if (Array.isArray(galleryRows)) {
+      galleryRows.forEach(row => {
+        if (row.photo) {
           mediaSlides.push({
-            url: item.photo.trim(),
+            url: row.photo.trim(),
             table: "product_images"
           });
         }
@@ -206,32 +203,17 @@
     currentSlideIndex = 0;
     updateCarouselCounter();
 
-    // 3. Render the compiled track loop
+    // Render slides dynamically
     mediaSlides.forEach(slideData => {
       const slide = document.createElement('div');
       slide.className = 'w-full h-full flex-shrink-0 relative flex items-center justify-center';
       slide.style.minWidth = '100%';
       
-      const isYouTube = slideData.url.includes('youtube.com') || slideData.url.includes('youtu.be');
-      const isVimeo = slideData.url.includes('vimeo.com');
-
-      if (isYouTube) {
-        let videoId = slideData.url.includes('v=') ? slideData.url.split('v=')[1].split('&')[0] : slideData.url.split('/').pop();
-        slide.innerHTML = `
-          <iframe class="w-full h-full border-0 pointer-events-none" src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1" allow="autoplay; encrypted-media"></iframe>
-        `;
-      } else if (isVimeo) {
-        let videoId = slideData.url.split('/').pop();
-        slide.innerHTML = `
-          <iframe class="w-full h-full border-0 pointer-events-none" src="https://player.vimeo.com/video/${videoId}?autoplay=1&loop=1&autopause=0&muted=1&background=1" allow="autoplay; encrypted-media"></iframe>
-        `;
-      } else {
-        // Convert the path using the correct AppSheet table source
-        const finalUrl = formatAppSheetUrl(slideData.url, slideData.table);
-        slide.innerHTML = `
-          <img src="${finalUrl}" alt="AURA Collection Asset" class="w-full h-full object-cover select-none pointer-events-none">
-        `;
-      }
+      const finalUrl = formatAppSheetUrl(slideData.url, slideData.table);
+      
+      slide.innerHTML = `
+        <img src="${finalUrl}" alt="AURA Collection Asset" class="w-full h-full object-cover select-none pointer-events-none">
+      `;
       track.appendChild(slide);
     });
   }
@@ -255,6 +237,47 @@
     }
   }
 
+  async function loadProductDetails() {
+    try {
+      // 1. Fetch the main product data as you normally do
+      const productRes = await fetch(`https://sheetdb.io/api/v1/lqwbo1nycajm0/search?id=${currentProductId}&sheet=products`);
+      const products = await productRes.json();
+      if (!products || products.length === 0) return;
+      const product = products[0];
+
+      // 2. FETCH THE RELATED NESTED GALLERY IMAGES FROM THE CHILD TAB
+      let galleryRows = [];
+      try {
+        const galleryRes = await fetch(`https://sheetdb.io/api/v1/lqwbo1nycajm0/search?product_id=${encodeURIComponent(product.id)}&sheet=product_images`);
+        if (galleryRes.ok) {
+          galleryRows = await galleryRes.json();
+        }
+      } catch (gErr) {
+        console.warn("Could not retrieve lookbook assets from product_images sheet:", gErr);
+      }
+
+      // 3. Render the details text onto your page layouts
+      currentProductId = product.id;
+      document.getElementById('product-name').innerText = product.name;
+      const priceVal = parseFloat(product.price) || 0;
+      document.getElementById('product-price').innerText = `$${priceVal.toFixed(2)}`;
+      document.getElementById('product-category').innerText = `// ${product.category}`;
+      document.getElementById('product-description').innerText = product.description;
+      
+      if (product.tag) {
+        const tagEl = document.getElementById('product-tag');
+        tagEl.innerText = product.tag;
+        tagEl.classList.remove('hidden');
+      }
+
+      // 4. Pass BOTH the product data and the explicitly fetched gallery rows to the carousel setup
+      setupUnifiedMediaCarousel(product, galleryRows);
+
+    } catch (err) {
+      console.error("Error initializing luxury lookbook system:", err);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     // Sync cart count on load
     try {
@@ -267,27 +290,19 @@
     const urlParams = new URLSearchParams(window.location.search);
     currentProductId = urlParams.get('id');
 
-    fetch('https://sheetdb.io/api/v1/lqwbo1nycajm0?sheet=products')
-      .then(res => res.json())
-      .then(products => {
-        const product = products.find(p => p.id === currentProductId) || products[0];
-        if (product) {
-          currentProductId = product.id;
-          setupUnifiedMediaCarousel(product);
-          document.getElementById('product-name').innerText = product.name;
-          const priceVal = parseFloat(product.price) || 0;
-          document.getElementById('product-price').innerText = `$${priceVal.toFixed(2)}`;
-          document.getElementById('product-category').innerText = `// ${product.category}`;
-          document.getElementById('product-description').innerText = product.description;
-          
-          if (product.tag) {
-            const tagEl = document.getElementById('product-tag');
-            tagEl.innerText = product.tag;
-            tagEl.classList.remove('hidden');
+    if (currentProductId) {
+      loadProductDetails();
+    } else {
+      // Fallback if no ID is passed
+      fetch('https://sheetdb.io/api/v1/lqwbo1nycajm0?sheet=products')
+        .then(res => res.json())
+        .then(products => {
+          if (products.length > 0) {
+            currentProductId = products[0].id;
+            loadProductDetails();
           }
-        }
-      })
-      .catch(err => console.error("Error loading product data:", err));
+        });
+    }
   });
 </script>
 </body>
