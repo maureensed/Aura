@@ -114,7 +114,7 @@
 
   <!-- Core JavaScript Architecture -->
  <script>
-  function formatAppSheetUrl(rawPath) {
+  function formatAppSheetUrl(rawPath, tableName = "products") {
     if (!rawPath) return '';
     
     // If it's already an absolute external web address (e.g., YouTube link), return as-is
@@ -124,7 +124,6 @@
     
     // Our verified AppSheet configuration details
     const appIdentifier = "Aura-orders-515261609";
-    const tableName = "products"; 
     
     // Construct the official public asset delivery path using the true app name
     return `https://www.appsheet.com/template/gettablefileurl?appName=${encodeURIComponent(appIdentifier)}&tableName=${encodeURIComponent(tableName)}&fileName=${encodeURIComponent(rawPath)}`;
@@ -178,43 +177,59 @@
     if (!track) return;
     track.innerHTML = '';
     
-    let mediaList = [];
+    let mediaSlides = [];
     
-    // Inject primary cover asset first
-    if (product.primaryimage) mediaList.push(product.primaryimage.trim());
-    
-    // Parse comma-separated gallery column values back into discrete web addresses
-    if (product.galleryimages) {
-      const extraMedia = product.galleryimages.split(',').map(item => item.trim()).filter(item => item.length > 0);
-      mediaList = [...mediaList, ...extraMedia];
+    // 1. Add the main primary cover image (from the "products" table)
+    if (product.primaryimage) {
+      mediaSlides.push({
+        url: product.primaryimage.trim(),
+        table: "products"
+      });
     }
     
-    totalMediaSlides = mediaList.length;
+    // 2. Add all nested child gallery images (from the "product_images" table)
+    // Check for common relational names like 'product_images' or 'Related product_images'
+    const childImages = product.product_images || product.Related_product_images || [];
+    if (Array.isArray(childImages)) {
+      childImages.forEach(item => {
+        // Extract the photo file path field from the child entry object
+        if (item.photo) {
+          mediaSlides.push({
+            url: item.photo.trim(),
+            table: "product_images"
+          });
+        }
+      });
+    }
+    
+    totalMediaSlides = mediaSlides.length;
     currentSlideIndex = 0;
     updateCarouselCounter();
 
-    mediaList.forEach(url => {
+    // 3. Render the compiled track loop
+    mediaSlides.forEach(slideData => {
       const slide = document.createElement('div');
       slide.className = 'w-full h-full flex-shrink-0 relative flex items-center justify-center';
       slide.style.minWidth = '100%';
       
-      const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
-      const isVimeo = url.includes('vimeo.com');
+      const isYouTube = slideData.url.includes('youtube.com') || slideData.url.includes('youtu.be');
+      const isVimeo = slideData.url.includes('vimeo.com');
 
       if (isYouTube) {
-        let videoId = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop();
+        let videoId = slideData.url.includes('v=') ? slideData.url.split('v=')[1].split('&')[0] : slideData.url.split('/').pop();
         slide.innerHTML = `
           <iframe class="w-full h-full border-0 pointer-events-none" src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1" allow="autoplay; encrypted-media"></iframe>
         `;
       } else if (isVimeo) {
-        let videoId = url.split('/').pop();
+        let videoId = slideData.url.split('/').pop();
         slide.innerHTML = `
           <iframe class="w-full h-full border-0 pointer-events-none" src="https://player.vimeo.com/video/${videoId}?autoplay=1&loop=1&autopause=0&muted=1&background=1" allow="autoplay; encrypted-media"></iframe>
         `;
       } else {
-        const finalImageUrl = formatAppSheetUrl(url);
+        // Convert the path using the correct AppSheet table source
+        const finalUrl = formatAppSheetUrl(slideData.url, slideData.table);
         slide.innerHTML = `
-          <img src="${finalImageUrl}" alt="AURA Collection Asset" class="w-full h-full object-cover select-none pointer-events-none">
+          <img src="${finalUrl}" alt="AURA Collection Asset" class="w-full h-full object-cover select-none pointer-events-none">
         `;
       }
       track.appendChild(slide);
