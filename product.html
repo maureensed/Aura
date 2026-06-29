@@ -122,9 +122,12 @@
       return rawPath;
     }
     
-    // Transform AppSheet relative file paths into public streaming CDN URLs
-    const appName = "974f932c-e0dc-4bac-af87-85ea88126d7c";
-    return `https://www.appsheet.com/get/?i=${appName}&tableName=products&fileName=${encodeURIComponent(rawPath)}`;
+    // AppSheet requires the format: AppName-AccountID
+    const appIdentifier = "Aura-orders-974f932c-e0dc-4bac-af87-85ea88126d7c";
+    const tableName = "products"; 
+    
+    // Construct the official public asset delivery path
+    return `https://www.appsheet.com/template/gettablefileurl?appName=${encodeURIComponent(appIdentifier)}&tableName=${encodeURIComponent(tableName)}&fileName=${encodeURIComponent(rawPath)}`;
   }
 
 
