@@ -141,8 +141,17 @@
     <div class="flex items-center justify-between px-margin-desktop max-w-7xl mx-auto w-full h-full">
       <!-- Left: Social Links to balance logo -->
       <div class="hidden md:flex gap-xl items-center">
-        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono tracking-widest text-secondary hover:text-primary uppercase transition-colors">IG</a>
-        <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono tracking-widest text-secondary hover:text-primary uppercase transition-colors">TT</a>
+        <div class="flex items-center space-x-3">
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="Instagram">
+            <span class="material-symbols-outlined text-[16px]">browse_gallery</span>
+          </a>
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="TikTok">
+            <span class="material-symbols-outlined text-[16px]">music_note</span>
+          </a>
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="Facebook">
+            <span class="material-symbols-outlined text-[16px]">public</span>
+          </a>
+        </div>
       </div>
       
       <!-- Center: Brand Logo -->
@@ -156,7 +165,7 @@
           <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
           <input id="header-search-input" class="bg-transparent border-none focus:ring-0 font-label-caps text-[10px] w-32 placeholder:text-outline py-1" placeholder="SEARCH" type="text">
         </div>
-        <button onclick="toggleCartDrawer()" class="font-label-caps text-label-caps text-primary dark:text-on-primary hover:text-primary transition-colors duration-300">CART (<span id="cart-count">0</span>)</button>
+        <button type="button" onclick="toggleCartDrawer()" class="font-label-caps text-label-caps text-primary dark:text-on-primary hover:text-primary transition-colors duration-300">CART (<span id="cart-count">0</span>)</button>
       </div>
     </div>
   </nav>
@@ -216,7 +225,7 @@
     <!-- Drawer Header -->
     <div class="flex justify-between items-center pb-6 border-b border-neutral-200/60">
       <h3 class="brand-font text-2xl font-light tracking-wide text-neutral-900">Your Selection</h3>
-      <button onclick="toggleCartDrawer()" class="text-xs tracking-widest uppercase text-neutral-400 hover:text-black transition-colors">✕ Close</button>
+      <button type="button" onclick="toggleCartDrawer()" class="text-xs tracking-widest uppercase text-neutral-400 hover:text-black transition-colors">✕ Close</button>
     </div>
 
     <!-- Scrollable Active Selection Items List -->
@@ -562,13 +571,18 @@
           if (!query) {
             // Empty query — reload all
             renderProductGrid(loadedProducts);
-            return;
+          } else {
+            const filtered = loadedProducts.filter(p =>
+              (p.name || '').toLowerCase().includes(query) ||
+              (p.category || '').toLowerCase().includes(query)
+            );
+            renderProductGrid(filtered);
           }
-          const filtered = loadedProducts.filter(p =>
-            (p.name || '').toLowerCase().includes(query) ||
-            (p.category || '').toLowerCase().includes(query)
-          );
-          renderProductGrid(filtered);
+          
+          const productGrid = document.getElementById('product-grid');
+          if (productGrid) {
+              productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
       });
     }

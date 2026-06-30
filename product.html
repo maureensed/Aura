@@ -142,8 +142,17 @@
       <!-- Left: Back link + Social Links -->
       <div class="hidden md:flex gap-xl items-center">
         <a href="index.html" class="font-label-caps text-label-caps text-secondary dark:text-on-secondary-container hover:text-primary transition-colors duration-300">← BACK TO CATALOG</a>
-        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono tracking-widest text-secondary hover:text-primary uppercase transition-colors">IG</a>
-        <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono tracking-widest text-secondary hover:text-primary uppercase transition-colors">TT</a>
+        <div class="flex items-center space-x-3">
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="Instagram">
+            <span class="material-symbols-outlined text-[16px]">browse_gallery</span>
+          </a>
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="TikTok">
+            <span class="material-symbols-outlined text-[16px]">music_note</span>
+          </a>
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="Facebook">
+            <span class="material-symbols-outlined text-[16px]">public</span>
+          </a>
+        </div>
       </div>
       
       <!-- Center: Brand Logo -->
@@ -157,7 +166,7 @@
           <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
           <input id="header-search-input" class="bg-transparent border-none focus:ring-0 font-label-caps text-[10px] w-32 placeholder:text-outline py-1" placeholder="SEARCH" type="text">
         </div>
-        <button onclick="window.location.href='index.html?openCart=true'" class="font-label-caps text-label-caps text-primary dark:text-on-primary hover:text-primary transition-colors duration-300">CART (<span id="cart-count">0</span>)</button>
+        <button type="button" onclick="window.location.href='index.html?openCart=true'" class="font-label-caps text-label-caps text-primary dark:text-on-primary hover:text-primary transition-colors duration-300">CART (<span id="cart-count">0</span>)</button>
       </div>
     </div>
   </nav>
@@ -194,9 +203,6 @@
         <!-- Divider -->
         <div class="border-t border-neutral-200/60 my-2"></div>
 
-        <!-- Short Pitch / Database Description -->
-        <p id="product-description" class="text-sm text-neutral-600 leading-relaxed my-6 font-light"></p>
-
         <!-- Dynamic Size Selection Panel (Conversion Optimization Feature) -->
         <div class="mb-8">
           <div class="flex justify-between items-center mb-3">
@@ -209,6 +215,9 @@
             <button class="size-btn border border-neutral-300 px-5 py-3 text-xs tracking-widest uppercase font-medium hover:border-black transition-all bg-white text-neutral-900" onclick="selectSize(this)">L</button>
           </div>
         </div>
+
+        <!-- Dynamic Product Description -->
+        <p id="product-details-text" class="text-xs text-neutral-600 font-light leading-relaxed tracking-wide mt-4 mb-6"></p>
 
         <!-- High-Converting CTA Buttons -->
         <div class="space-y-3 mb-8">
@@ -455,7 +464,11 @@
       const priceVal = parseFloat(product.price) || 0;
       document.getElementById('product-price').innerText = `$${priceVal.toFixed(2)}`;
       document.getElementById('product-category').innerText = product.category;
-      document.getElementById('product-description').innerText = product.description;
+      
+      const newDescEl = document.getElementById('product-details-text');
+      if (newDescEl && product.description) {
+        newDescEl.innerText = product.description;
+      }
       
       if (product.tag) {
         const tagEl = document.getElementById('product-tag');
