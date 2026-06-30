@@ -336,6 +336,19 @@
     return `https://www.appsheet.com/template/gettablefileurl?appName=${encodeURIComponent(appIdentifier)}&tableName=${encodeURIComponent(tableName)}&fileName=${encodeURIComponent(rawPath)}`;
   }
 
+  // Security: Strip HTML tags and neutralise injection-risk characters from any user-supplied string
+  function sanitizeInput(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/`/g, '&#x60;')
+      .replace(/\/\//g, '')
+      .trim();
+  }
+
   let loadedProducts = [];
 
   function toggleCartDrawer() {
@@ -454,11 +467,11 @@
     e.preventDefault();
     
     const errorEl = document.getElementById('form-error');
-    const name = document.getElementById('checkout-name').value.trim();
-    const email = document.getElementById('checkout-email').value.trim();
-    const phone = document.getElementById('checkout-phone').value.trim();
-    const address = document.getElementById('checkout-address').value.trim();
-    const notes = document.getElementById('checkout-notes').value.trim();
+    const name    = sanitizeInput(document.getElementById('checkout-name').value);
+    const email   = sanitizeInput(document.getElementById('checkout-email').value);
+    const phone   = sanitizeInput(document.getElementById('checkout-phone').value);
+    const address = sanitizeInput(document.getElementById('checkout-address').value);
+    const notes   = sanitizeInput(document.getElementById('checkout-notes').value);
     
     if (!name || !email || !phone || !address) {
       errorEl.innerText = "Please fill in all mandatory fields before completing order.";
@@ -583,7 +596,7 @@
     if (searchInput) {
       searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-          const query = searchInput.value.trim().toLowerCase();
+          const query = sanitizeInput(searchInput.value).toLowerCase();
           if (!query) {
             // Empty query — reload all
             renderProductGrid(loadedProducts);

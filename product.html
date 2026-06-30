@@ -336,6 +336,19 @@
   }
 
 
+  // Security: Strip HTML tags and neutralise injection-risk characters from any user-supplied string
+  function sanitizeInput(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/`/g, '&#x60;')
+      .replace(/\/\//g, '')
+      .trim();
+  }
+
   let selectedSizeElement = null;
   let currentProductId = '';
 
@@ -505,7 +518,9 @@
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    currentProductId = urlParams.get('id');
+    const rawId = urlParams.get('id');
+    // Sanitize URL parameter before use in fetch — only allow alphanumeric + hyphens/underscores
+    currentProductId = rawId ? rawId.replace(/[^a-zA-Z0-9\-_]/g, '') : '';
 
     if (currentProductId) {
       loadProductDetails();
@@ -526,7 +541,7 @@
     if (searchInput) {
       searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-          const query = searchInput.value.trim();
+          const query = sanitizeInput(searchInput.value);
           if (query) {
             window.location.href = `index.html?search=${encodeURIComponent(query)}`;
           } else {
