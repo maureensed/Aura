@@ -139,8 +139,10 @@
   <!-- Navigation -->
   <nav class="fixed top-0 w-full h-[80px] bg-surface/80 backdrop-blur-md dark:bg-surface/80 border-b border-outline-variant dark:border-outline z-50 transition-all duration-300">
     <div class="flex items-center justify-between px-margin-desktop max-w-7xl mx-auto w-full h-full">
-      <!-- Left: Navigation Links (Empty as requested) -->
+      <!-- Left: Social Links to balance logo -->
       <div class="hidden md:flex gap-xl items-center">
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono tracking-widest text-secondary hover:text-primary uppercase transition-colors">IG</a>
+        <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono tracking-widest text-secondary hover:text-primary uppercase transition-colors">TT</a>
       </div>
       
       <!-- Center: Brand Logo -->
@@ -152,7 +154,7 @@
       <div class="flex items-center gap-lg">
         <div class="hidden md:flex items-center border-b border-outline-variant focus-within:border-primary transition-all duration-200">
           <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
-          <input class="bg-transparent border-none focus:ring-0 font-label-caps text-[10px] w-32 placeholder:text-outline py-1" placeholder="SEARCH" type="text">
+          <input id="header-search-input" class="bg-transparent border-none focus:ring-0 font-label-caps text-[10px] w-32 placeholder:text-outline py-1" placeholder="SEARCH" type="text">
         </div>
         <button onclick="toggleCartDrawer()" class="font-label-caps text-label-caps text-primary dark:text-on-primary hover:text-primary transition-colors duration-300">CART (<span id="cart-count">0</span>)</button>
       </div>
@@ -178,7 +180,7 @@
   <main id="catalog" class="max-w-7xl mx-auto px-6 py-24">
     <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
       <div>
-        <span class="text-xs tracking-widest text-neutral-400 uppercase block mb-2">// CURRENT EDITION</span>
+        <span class="text-xs tracking-widest text-neutral-400 uppercase block mb-2">CURRENT EDITION</span>
         <h2 class="text-4xl font-light tracking-tight">The Core Collection</h2>
       </div>
     </div>
@@ -260,7 +262,7 @@
                     </p>
 </div>
 <div class="flex flex-col">
-<form class="relative group">
+<form id="newsletter-form" class="relative group">
 <input class="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant focus:border-primary focus:ring-0 py-6 px-0 font-label-caps text-sm tracking-widest placeholder:text-outline transition-all duration-300" placeholder="EMAIL ADDRESS" type="email">
 <button class="absolute right-0 bottom-6 font-label-caps text-label-caps text-primary hover:tracking-[0.2em] transition-all" type="submit">SIGN UP</button>
 </form>
@@ -341,6 +343,38 @@
     }
   }
 
+  function renderProductGrid(products) {
+    const grid = document.getElementById('product-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    if (products.length === 0) {
+      grid.innerHTML = '<p class="text-sm text-neutral-400 col-span-3 text-center py-12">No items found matching your search.</p>';
+      return;
+    }
+    products.forEach(product => {
+      let tagBadge = '';
+      if (product.tag) {
+        tagBadge = '<span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-[10px] tracking-widest uppercase font-semibold px-2.5 py-1 z-10 text-neutral-900">' + product.tag + '</span>';
+      }
+      const cardImageUrl = formatAppSheetUrl(product.primaryimage);
+      grid.innerHTML += `
+        <div class="group cursor-pointer relative" onclick="window.location.href='product.html?id=${product.id}'">
+          <div class="aspect-[3/4] overflow-hidden bg-neutral-100 mb-4 relative">
+            ${tagBadge}
+            <img src="${cardImageUrl}" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" alt="${product.name}">
+          </div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="font-label-caps text-label-caps text-secondary uppercase mb-1">${product.category}</p>
+              <h3 class="text-sm font-medium text-neutral-800 tracking-wide">${product.name}</h3>
+            </div>
+            <p class="text-sm font-medium text-neutral-900">$${product.price.toFixed(2)}</p>
+          </div>
+        </div>
+      `;
+    });
+  }
+
   function renderCartDrawerItems() {
     const cartList = document.getElementById('cart-items-list');
     const subtotalEl = document.getElementById('cart-subtotal');
@@ -362,7 +396,7 @@
         cartList.innerHTML += `
           <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
             <div class="flex items-center space-x-4">
-              <img src="${match.primaryImage}" class="w-16 h-20 object-cover bg-neutral-100" alt="Product thumbnail">
+              <img src="${formatAppSheetUrl(match.primaryimage)}" class="w-16 h-20 object-cover bg-neutral-100" alt="Product thumbnail">
               <div>
                 <h4 class="text-xs font-medium text-neutral-800 tracking-wide">${match.name}</h4>
                 <p class="text-[10px] text-neutral-400 tracking-wider uppercase mt-0.5">Size: ${cartItem.size}</p>
@@ -487,12 +521,15 @@
     // Auto-open cart drawer if redirected from product page
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('openCart') === 'true') {
-      // Small delay ensures products are fully fetched and built before sliding open
-      setTimeout(() => {
-        toggleCartDrawer();
-      }, 400);
-    }
-
+      // Render cart contents first, then slide the drawer open after products load
+      fetch('https://sheetdb.io/api/v1/lqwbo1nycajm0?sheet=products')
+        .then(res => res.json())
+        .then(products => {
+          loadedProducts = products.map(p => ({ ...p, price: parseFloat(p.price) || 0 }));
+          renderCartDrawerItems();
+          setTimeout(() => toggleCartDrawer(), 100);
+        });
+    } else {
     fetch('https://sheetdb.io/api/v1/lqwbo1nycajm0?sheet=products')
       .then(res => res.json())
       .then(products => {
@@ -501,35 +538,55 @@
           ...p,
           price: parseFloat(p.price) || 0
         }));
-        const grid = document.getElementById('product-grid');
-        grid.innerHTML = ''; 
-        
-        loadedProducts.forEach(product => {
-          let tagBadge = '';
-          if (product.tag) {
-            tagBadge = '<span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-[10px] tracking-widest uppercase font-semibold px-2.5 py-1 z-10 text-neutral-900">' + product.tag + '</span>';
-          }
 
-          const cardImageUrl = formatAppSheetUrl(product.primaryimage);
-
-          grid.innerHTML += `
-            <div class="group cursor-pointer relative" onclick="window.location.href='product.html?id=` + product.id + `'">
-              <div class="aspect-[3/4] overflow-hidden bg-neutral-100 mb-4 relative">
-                ` + tagBadge + `
-                <img src="` + cardImageUrl + `" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" alt="` + product.name + `">
-              </div>
-              <div class="flex justify-between items-start">
-                <div>
-                  <p class="font-label-caps text-label-caps text-secondary uppercase mb-1">` + product.category + `</p>
-                  <h3 class="text-sm font-medium text-neutral-800 tracking-wide">` + product.name + `</h3>
-                </div>
-                <p class="text-sm font-medium text-neutral-900">$` + product.price.toFixed(2) + `</p>
-              </div>
-            </div>
-          `;
-        });
+        // Check for search query in URL
+        const searchQuery = urlParams.get('search');
+        if (searchQuery) {
+          const filtered = loadedProducts.filter(p =>
+            (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.category || '').toLowerCase().includes(searchQuery.toLowerCase())
+          );
+          renderProductGrid(filtered);
+        } else {
+          renderProductGrid(loadedProducts);
+        }
       })
       .catch(err => console.error("Data ingestion failure:", err));
+    }
+    // Search input: filter catalog on Enter
+    const searchInput = document.getElementById('header-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const query = searchInput.value.trim().toLowerCase();
+          if (!query) {
+            // Empty query — reload all
+            renderProductGrid(loadedProducts);
+            return;
+          }
+          const filtered = loadedProducts.filter(p =>
+            (p.name || '').toLowerCase().includes(query) ||
+            (p.category || '').toLowerCase().includes(query)
+          );
+          renderProductGrid(filtered);
+        }
+      });
+    }
+
+    // Newsletter form confirmation
+    const newsletterForm = document.getElementById('newsletter-form');
+    if (newsletterForm) {
+      newsletterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailInput = newsletterForm.querySelector('input[type="email"]');
+        const btn = newsletterForm.querySelector('button[type="submit"]');
+        if (emailInput && emailInput.value) {
+          btn.textContent = 'CONFIRMED';
+          emailInput.value = '';
+          setTimeout(() => { btn.textContent = 'SIGN UP'; }, 3000);
+        }
+      });
+    }
   });
 </script>
 </body>

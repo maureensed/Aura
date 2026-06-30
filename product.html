@@ -139,9 +139,11 @@
   <!-- Navigation -->
   <nav class="fixed top-0 w-full h-[80px] bg-surface/80 backdrop-blur-md dark:bg-surface/80 border-b border-outline-variant dark:border-outline z-50 transition-all duration-300">
     <div class="flex items-center justify-between px-margin-desktop max-w-7xl mx-auto w-full h-full">
-      <!-- Left: Navigation Links (Empty as requested) -->
+      <!-- Left: Back link + Social Links -->
       <div class="hidden md:flex gap-xl items-center">
         <a href="index.html" class="font-label-caps text-label-caps text-secondary dark:text-on-secondary-container hover:text-primary transition-colors duration-300">← BACK TO CATALOG</a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono tracking-widest text-secondary hover:text-primary uppercase transition-colors">IG</a>
+        <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono tracking-widest text-secondary hover:text-primary uppercase transition-colors">TT</a>
       </div>
       
       <!-- Center: Brand Logo -->
@@ -153,7 +155,7 @@
       <div class="flex items-center gap-lg">
         <div class="hidden md:flex items-center border-b border-outline-variant focus-within:border-primary transition-all duration-200">
           <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
-          <input class="bg-transparent border-none focus:ring-0 font-label-caps text-[10px] w-32 placeholder:text-outline py-1" placeholder="SEARCH" type="text">
+          <input id="header-search-input" class="bg-transparent border-none focus:ring-0 font-label-caps text-[10px] w-32 placeholder:text-outline py-1" placeholder="SEARCH" type="text">
         </div>
         <button onclick="window.location.href='index.html?openCart=true'" class="font-label-caps text-label-caps text-primary dark:text-on-primary hover:text-primary transition-colors duration-300">CART (<span id="cart-count">0</span>)</button>
       </div>
@@ -182,7 +184,7 @@
         <!-- Tags & Metadata -->
         <div class="mb-4">
           <span id="product-tag" class="hidden text-[10px] tracking-widest uppercase font-semibold bg-neutral-900 text-white px-2.5 py-1 rounded-none inline-block mb-3"></span>
-          <p id="product-category" class="text-xs text-neutral-400 tracking-wider uppercase mb-1"></p>
+          <p id="product-category" class="font-label-caps text-label-caps text-secondary tracking-wider uppercase mb-1"></p>
           <h1 id="product-name" class="text-4xl font-light tracking-tight text-neutral-900"></h1>
         </div>
 
@@ -192,7 +194,7 @@
         <!-- Divider -->
         <div class="border-t border-neutral-200/60 my-2"></div>
 
-        <!-- Short Pitch -->
+        <!-- Short Pitch / Database Description -->
         <p id="product-description" class="text-sm text-neutral-600 leading-relaxed my-6 font-light"></p>
 
         <!-- Dynamic Size Selection Panel (Conversion Optimization Feature) -->
@@ -252,7 +254,7 @@
                     </p>
 </div>
 <div class="flex flex-col">
-<form class="relative group">
+<form id="newsletter-form" class="relative group">
 <input class="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant focus:border-primary focus:ring-0 py-6 px-0 font-label-caps text-sm tracking-widest placeholder:text-outline transition-all duration-300" placeholder="EMAIL ADDRESS" type="email">
 <button class="absolute right-0 bottom-6 font-label-caps text-label-caps text-primary hover:tracking-[0.2em] transition-all" type="submit">SIGN UP</button>
 </form>
@@ -493,6 +495,36 @@
             loadProductDetails();
           }
         });
+    }
+
+    // Search input: redirect to homepage with query on Enter
+    const searchInput = document.getElementById('header-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const query = searchInput.value.trim();
+          if (query) {
+            window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+          } else {
+            window.location.href = 'index.html';
+          }
+        }
+      });
+    }
+
+    // Newsletter form confirmation (product page)
+    const newsletterForm = document.getElementById('newsletter-form');
+    if (newsletterForm) {
+      newsletterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailInput = newsletterForm.querySelector('input[type="email"]');
+        const btn = newsletterForm.querySelector('button[type="submit"]');
+        if (emailInput && emailInput.value) {
+          btn.textContent = 'CONFIRMED';
+          emailInput.value = '';
+          setTimeout(() => { btn.textContent = 'SIGN UP'; }, 3000);
+        }
+      });
     }
   });
 </script>
