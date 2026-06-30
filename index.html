@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AURA Studio | Minimalist Apparel Architecture</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <!-- Google Fonts for Luxury Typography -->
@@ -141,15 +143,15 @@
     <div class="flex items-center justify-between px-margin-desktop max-w-7xl mx-auto w-full h-full">
       <!-- Left: Social Links to balance logo -->
       <div class="hidden md:flex gap-xl items-center">
-        <div class="flex items-center space-x-3">
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="Instagram">
-            <span class="material-symbols-outlined text-[16px]">browse_gallery</span>
+        <div class="flex items-center space-x-4 pl-2">
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors text-xs" title="Facebook">
+            <i class="fa-brands fa-facebook-f"></i>
           </a>
-          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="TikTok">
-            <span class="material-symbols-outlined text-[16px]">music_note</span>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors text-xs" title="Instagram">
+            <i class="fa-brands fa-instagram"></i>
           </a>
-          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="Facebook">
-            <span class="material-symbols-outlined text-[16px]">public</span>
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors text-xs" title="TikTok">
+            <i class="fa-brands fa-tiktok"></i>
           </a>
         </div>
       </div>
@@ -527,18 +529,8 @@
     const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
     document.getElementById('cart-count').innerText = globalCart.length;
 
-    // Auto-open cart drawer if redirected from product page
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('openCart') === 'true') {
-      // Render cart contents first, then slide the drawer open after products load
-      fetch('https://sheetdb.io/api/v1/lqwbo1nycajm0?sheet=products')
-        .then(res => res.json())
-        .then(products => {
-          loadedProducts = products.map(p => ({ ...p, price: parseFloat(p.price) || 0 }));
-          renderCartDrawerItems();
-          setTimeout(() => toggleCartDrawer(), 100);
-        });
-    } else {
+
     fetch('https://sheetdb.io/api/v1/lqwbo1nycajm0?sheet=products')
       .then(res => res.json())
       .then(products => {
@@ -559,9 +551,14 @@
         } else {
           renderProductGrid(loadedProducts);
         }
+
+        // Auto-open cart drawer if redirected from product page
+        if (urlParams.get('openCart') === 'true') {
+          renderCartDrawerItems();
+          setTimeout(() => toggleCartDrawer(), 100);
+        }
       })
       .catch(err => console.error("Data ingestion failure:", err));
-    }
     // Search input: filter catalog on Enter
     const searchInput = document.getElementById('header-search-input');
     if (searchInput) {

@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AURA Studio | Product Specifications</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <!-- Google Fonts for Luxury Typography -->
@@ -142,15 +144,15 @@
       <!-- Left: Back link + Social Links -->
       <div class="hidden md:flex gap-xl items-center">
         <a href="index.html" class="font-label-caps text-label-caps text-secondary dark:text-on-secondary-container hover:text-primary transition-colors duration-300">← BACK TO CATALOG</a>
-        <div class="flex items-center space-x-3">
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="Instagram">
-            <span class="material-symbols-outlined text-[16px]">browse_gallery</span>
+        <div class="flex items-center space-x-4 pl-2">
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors text-xs" title="Facebook">
+            <i class="fa-brands fa-facebook-f"></i>
           </a>
-          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="TikTok">
-            <span class="material-symbols-outlined text-[16px]">music_note</span>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors text-xs" title="Instagram">
+            <i class="fa-brands fa-instagram"></i>
           </a>
-          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors" title="Facebook">
-            <span class="material-symbols-outlined text-[16px]">public</span>
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-neutral-950 transition-colors text-xs" title="TikTok">
+            <i class="fa-brands fa-tiktok"></i>
           </a>
         </div>
       </div>
@@ -216,9 +218,6 @@
           </div>
         </div>
 
-        <!-- Dynamic Product Description -->
-        <p id="product-details-text" class="text-xs text-neutral-600 font-light leading-relaxed tracking-wide mt-4 mb-6"></p>
-
         <!-- High-Converting CTA Buttons -->
         <div class="space-y-3 mb-8">
           <p id="size-error" class="text-xs text-red-500 font-medium tracking-wide hidden mb-3">Please select a size specification before proceeding.</p>
@@ -231,6 +230,11 @@
             <span class="flex items-center">✓ 100% Organic Fabrics</span>
             <span class="flex items-center">✓ Duty-Free Import</span>
           </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-neutral-100">
+          <h3 class="text-xs font-bold tracking-widest text-neutral-900 uppercase font-mono mb-3">DESCRIPTION</h3>
+          <p id="product-long-description" class="text-xs text-neutral-600 font-light leading-relaxed tracking-wide"></p>
         </div>
 
         <!-- Product Details/Accordions (Increases trust, drops bounce rates) -->
@@ -465,9 +469,9 @@
       document.getElementById('product-price').innerText = `$${priceVal.toFixed(2)}`;
       document.getElementById('product-category').innerText = product.category;
       
-      const newDescEl = document.getElementById('product-details-text');
-      if (newDescEl && product.description) {
-        newDescEl.innerText = product.description;
+      const newDescEl = document.getElementById('product-long-description');
+      if (newDescEl) {
+        newDescEl.innerText = product.description || '';
       }
       
       if (product.tag) {
