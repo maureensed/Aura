@@ -5,14 +5,128 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AURA Studio | Minimalist Apparel Architecture</title>
   <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <!-- Google Fonts for Luxury Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <!-- Design System Config -->
+  <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "tertiary": "#000000",
+                    "surface-tint": "#605e5c",
+                    "on-surface-variant": "#4a4640",
+                    "on-secondary-container": "#626361",
+                    "on-primary-fixed": "#1c1b1a",
+                    "surface-container-low": "#f4f3f3",
+                    "surface-container-highest": "#e2e2e2",
+                    "secondary-container": "#e0dfde",
+                    "primary-fixed": "#e6e2df",
+                    "surface-dim": "#dadada",
+                    "primary-container": "#1c1b1a",
+                    "on-tertiary-container": "#848484",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#464746",
+                    "surface-container-high": "#e8e8e8",
+                    "secondary-fixed": "#e3e2e0",
+                    "inverse-on-surface": "#f1f1f1",
+                    "inverse-primary": "#cac6c4",
+                    "secondary": "#5e5f5d",
+                    "on-primary-fixed-variant": "#484645",
+                    "outline": "#7b766f",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#1a1c1b",
+                    "tertiary-fixed": "#e3e2e2",
+                    "secondary-fixed-dim": "#c7c6c5",
+                    "surface-container-lowest": "#ffffff",
+                    "on-background": "#1a1c1c",
+                    "background": "#f9f9f9",
+                    "outline-variant": "#ccc6bd",
+                    "tertiary-fixed-dim": "#c7c6c6",
+                    "surface": "#f9f9f9",
+                    "on-tertiary-fixed-variant": "#464747",
+                    "primary-fixed-dim": "#cac6c4",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "surface-bright": "#f9f9f9",
+                    "on-surface": "#1a1c1c",
+                    "error-container": "#ffdad6",
+                    "surface-container": "#eeeeee",
+                    "on-error-container": "#93000a",
+                    "inverse-surface": "#2f3131",
+                    "surface-variant": "#e2e2e2",
+                    "primary": "#000000",
+                    "tertiary-container": "#1b1c1c",
+                    "on-primary-container": "#868382",
+                    "on-primary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px",
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "margin-mobile": "24px",
+                    "unit": "4px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "section-gap": "96px",
+                    "margin-desktop": "32px"
+            },
+            "fontFamily": {
+                    "body-base": ["Plus Jakarta Sans"],
+                    "label-caps": ["Plus Jakarta Sans"],
+                    "headline-md": ["Cormorant Garamond"],
+                    "display-lg-mobile": ["Cormorant Garamond"],
+                    "body-bold": ["Plus Jakarta Sans"],
+                    "display-lg": ["Cormorant Garamond"]
+            },
+            "fontSize": {
+                    "body-base": ["14px", {"lineHeight": "22px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                    "label-caps": ["10px", {"lineHeight": "12px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "headline-md": ["36px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "300"}],
+                    "display-lg-mobile": ["48px", {"lineHeight": "56px", "letterSpacing": "0.025em", "fontWeight": "300"}],
+                    "body-bold": ["14px", {"lineHeight": "22px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["72px", {"lineHeight": "80px", "letterSpacing": "0.025em", "fontWeight": "300"}]
+            }
+          },
+        },
+      }
+  </script>
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f9f9f9;
+        color: #1a1c1c;
+        -webkit-font-smoothing: antialiased;
+    }
     h1, h2, .brand-font { font-family: 'Cormorant Garamond', serif; }
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+    }
+    /* Custom image hover effect */
+    .editorial-zoom {
+        transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .group:hover .editorial-zoom {
+        transform: scale(1.05);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
   </style>
 </head>
 <body class="bg-[#fcfbf9] text-[#1c1b1a] antialiased">
@@ -23,34 +137,42 @@
   </div>
 
   <!-- Navigation -->
-  <nav class="border-b border-gray-100 sticky top-0 bg-[#fcfbf9]/80 backdrop-blur-md z-50">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <div class="hidden md:flex space-x-8 text-xs tracking-widest uppercase font-medium">
-        <a href="#" class="hover:text-neutral-500 transition-colors">Collection</a>
-        <a href="#" class="hover:text-neutral-500 transition-colors">Journal</a>
+  <nav class="fixed top-0 w-full h-[80px] bg-surface/80 backdrop-blur-md dark:bg-surface/80 border-b border-outline-variant dark:border-outline z-50 transition-all duration-300">
+    <div class="flex items-center justify-between px-margin-desktop max-w-7xl mx-auto w-full h-full">
+      <!-- Left: Navigation Links (Empty as requested) -->
+      <div class="hidden md:flex gap-xl items-center">
       </div>
       
-      <a href="index.html" class="brand-font text-3xl font-semibold tracking-wide text-center">A U R A</a>
+      <!-- Center: Brand Logo -->
+      <div class="absolute left-1/2 -translate-x-1/2">
+        <a href="index.html" class="font-headline-md text-headline-md uppercase tracking-tighter text-primary dark:text-on-primary">Aura Studio</a>
+      </div>
       
-      <div class="flex items-center space-x-6 text-xs tracking-widest uppercase font-medium">
-        <a href="#" class="hover:text-neutral-500 transition-colors">Search</a>
-        <button onclick="toggleCartDrawer()" class="relative hover:text-neutral-500 transition-colors cursor-pointer">
-          Cart (<span id="cart-count">0</span>)
-        </button>
+      <!-- Right: Search & Actions -->
+      <div class="flex items-center gap-lg">
+        <div class="hidden md:flex items-center border-b border-outline-variant focus-within:border-primary transition-all duration-200">
+          <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
+          <input class="bg-transparent border-none focus:ring-0 font-label-caps text-[10px] w-32 placeholder:text-outline py-1" placeholder="SEARCH" type="text">
+        </div>
+        <button onclick="toggleCartDrawer()" class="font-label-caps text-label-caps text-primary dark:text-on-primary hover:text-primary transition-colors duration-300">CART (<span id="cart-count">0</span>)</button>
       </div>
     </div>
   </nav>
 
   <!-- Luxury Hero Section -->
-  <header class="relative h-[70vh] bg-neutral-200 flex items-center justify-center overflow-hidden">
-    <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover brightness-95" alt="Hero Image">
-    <div class="absolute inset-0 bg-black/10"></div>
-    <div class="relative text-center text-white px-4">
-      <h1 class="text-5xl md:text-7xl font-light tracking-wide mb-6">Effortless Wardrobe Systems</h1>
-      <p class="text-sm tracking-widest uppercase font-light max-w-md mx-auto mb-8 text-neutral-200">Bespoke cuts. Generous proportions. Crafted for longevity.</p>
-      <a href="#catalog" class="inline-block bg-white text-neutral-900 text-xs tracking-widest uppercase px-8 py-4 hover:bg-neutral-900 hover:text-white transition-all duration-300 font-medium">Explore Collection</a>
+  <section class="relative w-full h-[921px] overflow-hidden flex items-center justify-center pt-[80px]">
+    <div class="absolute inset-0 z-0">
+      <div class="w-full h-full bg-cover bg-center editorial-zoom" style="background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&auto=format&fit=crop');">
+      </div>
+      <div class="absolute inset-0 bg-black/10"></div>
     </div>
-  </header>
+    <div class="relative z-10 text-center max-w-4xl px-margin-mobile">
+      <h2 class="font-display-lg text-display-lg text-on-primary mb-8 tracking-tight leading-tight drop-shadow-sm">TIMELESS ARCHITECTURE FOR THE MODERN WARDROBE</h2>
+      <a href="#catalog" class="inline-block bg-primary text-on-primary px-xl py-[18px] font-label-caps text-label-caps tracking-[0.2em] hover:bg-secondary transition-all duration-300">
+        DISCOVER THE COLLECTION
+      </a>
+    </div>
+  </section>
 
   <!-- Product Catalog Section -->
   <main id="catalog" class="max-w-7xl mx-auto px-6 py-24">
@@ -124,6 +246,70 @@
     </div>
   </div>
 </div>
+
+<!-- Newsletter Block -->
+<section class="w-full py-section-gap bg-surface-container-low border-t border-outline-variant">
+<div class="max-w-7xl mx-auto px-margin-desktop grid grid-cols-1 md:grid-cols-2 gap-xl items-center">
+<div>
+<div class="inline-block border border-primary px-3 py-1 mb-6">
+<span class="font-label-caps text-[9px] tracking-[0.2em] text-primary">INSIDER ACCESS</span>
+</div>
+<h2 class="font-display-lg-mobile md:font-display-lg text-on-surface mb-4">STAY UPDATED</h2>
+<p class="font-body-base text-secondary max-w-sm">
+                        Join our inner circle for exclusive early access to seasonal collections and studio notes. Members receive 10% discount on their first acquisition.
+                    </p>
+</div>
+<div class="flex flex-col">
+<form class="relative group">
+<input class="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant focus:border-primary focus:ring-0 py-6 px-0 font-label-caps text-sm tracking-widest placeholder:text-outline transition-all duration-300" placeholder="EMAIL ADDRESS" type="email">
+<button class="absolute right-0 bottom-6 font-label-caps text-label-caps text-primary hover:tracking-[0.2em] transition-all" type="submit">SIGN UP</button>
+</form>
+<p class="mt-4 font-label-caps text-[8px] text-outline-variant tracking-widest uppercase">Privacy Policy applies. By signing up you agree to our terms.</p>
+</div>
+</div>
+</section>
+
+<!-- Footer -->
+<footer class="w-full py-section-gap bg-background dark:bg-background border-t border-outline-variant dark:border-outline">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-7xl mx-auto">
+<!-- Brand Column -->
+<div class="flex flex-col gap-6">
+<span class="font-headline-md text-headline-md text-primary dark:text-on-primary uppercase tracking-tighter">Aura Studio</span>
+<p class="font-label-caps text-label-caps text-secondary leading-relaxed max-w-[200px]">
+                    ARCHITECTURAL MINIMALISM FOR THE MODERN WARDROBE.
+                </p>
+</div>
+<!-- Quick Links -->
+<div class="flex flex-col gap-4">
+<span class="font-label-caps text-label-caps text-primary font-bold mb-2">QUICK LINKS</span>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">COLLECTIONS</a>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">CARE GUIDE</a>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">SHIPPING</a>
+</div>
+<!-- Legal -->
+<div class="flex flex-col gap-4">
+<span class="font-label-caps text-label-caps text-primary font-bold mb-2">LEGAL</span>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">PRIVACY POLICY</a>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">TERMS OF SERVICE</a>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">ACCESSIBILITY</a>
+</div>
+<!-- Social -->
+<div class="flex flex-col gap-4">
+<span class="font-label-caps text-label-caps text-primary font-bold mb-2">SOCIAL</span>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">INSTAGRAM</a>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">FACEBOOK</a>
+<a class="font-body-base text-body-base text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">TIKTOK</a>
+</div>
+</div>
+<!-- Bottom Copyright -->
+<div class="max-w-7xl mx-auto px-margin-desktop mt-16 pt-8 border-t border-outline-variant flex justify-between items-center">
+<span class="font-label-caps text-[9px] text-outline tracking-widest">© 2024 AURA STUDIO. ALL RIGHTS RESERVED.</span>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-sm text-outline">language</span>
+<span class="font-label-caps text-[9px] text-outline tracking-widest">GLOBAL / EN</span>
+</div>
+</div>
+</footer>
 
   <!-- Core JavaScript Pipeline -->
 <script>
@@ -334,7 +520,7 @@
               </div>
               <div class="flex justify-between items-start">
                 <div>
-                  <p class="text-xs text-neutral-400 tracking-wider uppercase mb-1">// ` + product.category + `</p>
+                  <p class="font-label-caps text-label-caps text-secondary uppercase mb-1">` + product.category + `</p>
                   <h3 class="text-sm font-medium text-neutral-800 tracking-wide">` + product.name + `</h3>
                 </div>
                 <p class="text-sm font-medium text-neutral-900">$` + product.price.toFixed(2) + `</p>
