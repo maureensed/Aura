@@ -362,14 +362,21 @@
     errorEl.classList.add('hidden');
     
     let globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-    const itemToAdd = {
-      id: currentProductId,
-      size: selectedSizeElement.innerText.trim()
-    };
+    const size = selectedSizeElement.innerText.trim();
     
-    globalCart.push(itemToAdd);
+    const existingItemIndex = globalCart.findIndex(item => item.id === currentProductId && item.size === size);
+    if (existingItemIndex > -1) {
+      globalCart[existingItemIndex].quantity = (globalCart[existingItemIndex].quantity || 1) + 1;
+    } else {
+      globalCart.push({
+        id: currentProductId,
+        size: size,
+        quantity: 1
+      });
+    }
+    
     localStorage.setItem('aura_cart', JSON.stringify(globalCart));
-    document.getElementById('cart-count').innerText = globalCart.length;
+    document.getElementById('cart-count').innerText = globalCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     
     // Redirect back with an auto-open parameter so the user sees their item in the cart drawer immediately
     window.location.href = 'index.html?openCart=true';
@@ -492,7 +499,7 @@
     // Sync cart count on load
     try {
       const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-      document.getElementById('cart-count').innerText = globalCart.length;
+      document.getElementById('cart-count').innerText = globalCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     } catch(e) {
       document.getElementById('cart-count').innerText = 0;
     }

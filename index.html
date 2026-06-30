@@ -403,7 +403,8 @@
     globalCart.forEach((cartItem, index) => {
       const match = loadedProducts.find(p => p.id === cartItem.id);
       if(match) {
-        runningTotal += match.price;
+        const qty = cartItem.quantity || 1;
+        runningTotal += match.price * qty;
         cartList.innerHTML += `
           <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
             <div class="flex items-center space-x-4">
@@ -411,10 +412,14 @@
               <div>
                 <h4 class="text-xs font-medium text-neutral-800 tracking-wide">${match.name}</h4>
                 <p class="text-[10px] text-neutral-400 tracking-wider uppercase mt-0.5">Size: ${cartItem.size}</p>
-                <button onclick="removeCartItem(${index})" class="text-[10px] text-neutral-400 underline uppercase mt-2 hover:text-red-500 transition-colors">Remove</button>
+                <div class="flex items-center space-x-3 mt-2">
+                  <button onclick="updateCartQuantity(${index}, -1)" class="cart-qty-minus text-neutral-400 hover:text-neutral-950 font-mono text-xs px-2 py-0.5 border border-neutral-200" data-id="${match.id}">-</button>
+                  <span class="text-xs font-mono text-neutral-700 w-4 text-center">${qty}</span>
+                  <button onclick="updateCartQuantity(${index}, 1)" class="cart-qty-plus text-neutral-400 hover:text-neutral-950 font-mono text-xs px-2 py-0.5 border border-neutral-200" data-id="${match.id}">+</button>
+                </div>
               </div>
             </div>
-            <p class="text-xs font-medium text-neutral-900">$${match.price.toFixed(2)}</p>
+            <p class="text-xs font-medium text-neutral-900">$${(match.price * qty).toFixed(2)}</p>
           </div>
         `;
       }
@@ -423,11 +428,25 @@
     subtotalEl.innerText = '$' + runningTotal.toFixed(2);
   }
 
+  function updateCartQuantity(index, delta) {
+    let globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+    if (!globalCart[index]) return;
+    
+    globalCart[index].quantity = (globalCart[index].quantity || 1) + delta;
+    if (globalCart[index].quantity < 1) {
+      globalCart.splice(index, 1);
+    }
+    
+    localStorage.setItem('aura_cart', JSON.stringify(globalCart));
+    document.getElementById('cart-count').innerText = globalCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    renderCartDrawerItems();
+  }
+
   function removeCartItem(index) {
     let globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
     globalCart.splice(index, 1);
     localStorage.setItem('aura_cart', JSON.stringify(globalCart));
-    document.getElementById('cart-count').innerText = globalCart.length;
+    document.getElementById('cart-count').innerText = globalCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     renderCartDrawerItems();
   }
 
@@ -527,7 +546,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     const globalCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-    document.getElementById('cart-count').innerText = globalCart.length;
+    document.getElementById('cart-count').innerText = globalCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
     const urlParams = new URLSearchParams(window.location.search);
 
